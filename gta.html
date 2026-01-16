@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Mini GTA</title>
+
+<style>
+body{
+    margin:0;
+    background:#0a0a0a;
+    overflow:hidden;
+}
+#game{
+    width:100vw;
+    height:100vh;
+    background:#1b1b1b;
+    position:relative;
+}
+.car{
+    width:50px;
+    height:80px;
+    background:red;
+    position:absolute;
+    bottom:40px;
+    left:50%;
+    transform:translateX(-50%);
+}
+.road{
+    position:absolute;
+    width:10px;
+    height:40px;
+    background:#555;
+    left:50%;
+    animation:road 1s linear infinite;
+}
+@keyframes road{
+    from{top:-40px;}
+    to{top:100vh;}
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+    <div class="car" id="car"></div>
+</div>
+
+<script>
+const car = document.getElementById("car");
+let x = window.innerWidth / 2 - 25;
+
+document.addEventListener("keydown", e=>{
+    if(e.key === "ArrowLeft") x -= 20;
+    if(e.key === "ArrowRight") x += 20;
+    car.style.left = x + "px";
+});
+
+setInterval(()=>{
+    const road = document.createElement("div");
+    road.className = "road";
+    road.style.left = (window.innerWidth/2) + "px";
+    document.getElementById("game").appendChild(road);
+    setTimeout(()=>road.remove(),1000);
+},200);
+</script>
+
+</body>
+</html>

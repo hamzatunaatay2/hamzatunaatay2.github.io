@@ -35,7 +35,6 @@ body{
     z-index:9999;
     animation:pulse 1s infinite alternate;
 }
-
 @keyframes pulse{
     from{opacity:0.3}
     to{opacity:1}
@@ -55,7 +54,6 @@ body{
     );
     animation: bgMove 20s linear infinite;
 }
-
 @keyframes bgMove{
     from{background-position:0 0;}
     to{background-position:1000px 0;}
@@ -65,45 +63,64 @@ body{
 .card{
     position:relative;
     background:rgba(255,255,255,0.08);
-    padding:50px 60px;
+    padding:45px 55px;
     border-radius:25px;
     text-align:center;
     box-shadow:0 0 60px rgba(0,255,150,0.4);
-    animation: giris 1.2s ease;
+    animation:giris 1.2s ease;
     z-index:1;
+    width:360px;
 }
 
 h1{
-    font-size:46px;
-    margin-bottom:10px;
+    font-size:40px;
+    margin-bottom:5px;
 }
 
 .subtitle{
     opacity:0.8;
-    margin-bottom:20px;
+    margin-bottom:15px;
 }
 
 .desc{
-    font-size:20px;
     color:#00ff99;
-    margin-bottom:30px;
+    margin-bottom:25px;
+}
+
+/* OYUN */
+.game{
+    margin-top:20px;
+}
+
+#score{
+    font-size:22px;
+    margin-bottom:15px;
+}
+
+#clickBtn{
+    padding:15px 35px;
+    font-size:18px;
+    border:none;
+    border-radius:30px;
+    cursor:pointer;
+    background:#00ff99;
+    transition:0.2s;
+}
+
+#clickBtn:hover{
+    transform:scale(1.1);
+    background:#00cc77;
 }
 
 footer{
-    margin-top:30px;
+    margin-top:25px;
     font-size:13px;
     opacity:0.6;
 }
 
 @keyframes giris{
-    from{
-        opacity:0;
-        transform:scale(0.7);
-    }
-    to{
-        opacity:1;
-        transform:scale(1);
-    }
+    from{opacity:0; transform:scale(0.7);}
+    to{opacity:1; transform:scale(1);}
 }
 
 /* MOUSE NEON */
@@ -129,26 +146,37 @@ footer{
 
 <div class="card">
     <h1>Hamza Tuna 🚀</h1>
-    <p class="subtitle">Frontend Developer • GitHub Pages</p>
+    <p class="subtitle">Frontend Developer</p>
+    <p class="desc">Aşağıda mini oyunu dene 👇</p>
 
-    <p class="desc">
-        Kişisel web siteme hoş geldiniz.
-    </p>
+    <div class="game">
+        <div id="score">Skor: 0</div>
+        <button id="clickBtn">TIKLA 🔥</button>
+    </div>
 
-    <footer>© 2026 • Yayında</footer>
+    <footer>© 2026 • GitHub Pages</footer>
 </div>
 
 <script>
+/* LOADING */
 window.onload = () => {
     setTimeout(()=>{
         document.getElementById("loader").style.display="none";
     },1200);
 }
 
+/* MOUSE */
 document.addEventListener("mousemove", e=>{
     const c = document.getElementById("cursor");
     c.style.left = e.clientX + "px";
     c.style.top  = e.clientY + "px";
+});
+
+/* MINI OYUN */
+let score = 0;
+document.getElementById("clickBtn").addEventListener("click", ()=>{
+    score++;
+    document.getElementById("score").innerText = "Skor: " + score;
 });
 </script>
 

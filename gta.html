@@ -1,41 +1,88 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Mini GTA</title>
+<title>Mini GTA Vice City</title>
 
 <style>
 body{
     margin:0;
-    background:#0a0a0a;
     overflow:hidden;
+    background:linear-gradient(#0b0033,#000);
+    font-family:Arial, sans-serif;
 }
+
 #game{
     width:100vw;
     height:100vh;
-    background:#1b1b1b;
     position:relative;
+    overflow:hidden;
 }
+
+#road{
+    position:absolute;
+    width:100%;
+    height:200%;
+    background:repeating-linear-gradient(
+        #222 0px,
+        #222 40px,
+        #333 40px,
+        #333 80px
+    );
+    animation:roadMove 1s linear infinite;
+}
+
+@keyframes roadMove{
+    from{top:-100%;}
+    to{top:0;}
+}
+
 .car{
     width:50px;
-    height:80px;
-    background:red;
+    height:90px;
+    background:#ff0077;
     position:absolute;
-    bottom:40px;
+    bottom:30px;
     left:50%;
     transform:translateX(-50%);
+    border-radius:8px;
+    box-shadow:0 0 20px #ff0077;
 }
-.road{
+
+.enemy{
+    width:50px;
+    height:90px;
+    background:#fff;
     position:absolute;
-    width:10px;
-    height:40px;
-    background:#555;
-    left:50%;
-    animation:road 1s linear infinite;
+    top:-100px;
+    border-radius:8px;
 }
-@keyframes road{
-    from{top:-40px;}
-    to{top:100vh;}
+
+.police{
+    background:#00ccff;
+    box-shadow:0 0 15px #00ccff;
+}
+
+#hud{
+    position:absolute;
+    top:15px;
+    left:15px;
+    color:#00ffcc;
+    font-size:18px;
+    z-index:10;
+}
+
+#gameOver{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.85);
+    color:white;
+    display:none;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    font-size:32px;
 }
 </style>
 </head>
@@ -43,26 +90,85 @@ body{
 <body>
 
 <div id="game">
-    <div class="car" id="car"></div>
+    <div id="road"></div>
+    <div class="car" id="player"></div>
+
+    <div id="hud">
+        Skor: <span id="score">0</span><br>
+        Seviye: <span id="level">1</span>
+    </div>
+
+    <div id="gameOver">
+        💀 GAME OVER<br>
+        <small>Yenile tekrar oyna</small>
+    </div>
 </div>
 
 <script>
-const car = document.getElementById("car");
-let x = window.innerWidth / 2 - 25;
+const player = document.getElementById("player");
+const game = document.getElementById("game");
+const scoreEl = document.getElementById("score");
+const levelEl = document.getElementById("level");
+const gameOverScreen = document.getElementById("gameOver");
+
+let x = window.innerWidth/2 - 25;
+let score = 0;
+let level = 1;
+let speed = 4;
+let gameOver = false;
 
 document.addEventListener("keydown", e=>{
-    if(e.key === "ArrowLeft") x -= 20;
-    if(e.key === "ArrowRight") x += 20;
-    car.style.left = x + "px";
+    if(gameOver) return;
+    if(e.key==="ArrowLeft") x -= 25;
+    if(e.key==="ArrowRight") x += 25;
+    x = Math.max(0, Math.min(window.innerWidth-50, x));
+    player.style.left = x + "px";
 });
 
-setInterval(()=>{
-    const road = document.createElement("div");
-    road.className = "road";
-    road.style.left = (window.innerWidth/2) + "px";
-    document.getElementById("game").appendChild(road);
-    setTimeout(()=>road.remove(),1000);
-},200);
+function spawnEnemy(){
+    if(gameOver) return;
+
+    const e = document.createElement("div");
+    e.className = Math.random()>0.6 ? "enemy police" : "enemy";
+    e.style.left = Math.random()*(window.innerWidth-50)+"px";
+    game.appendChild(e);
+
+    let y = -100;
+    const move = setInterval(()=>{
+        if(gameOver){clearInterval(move); e.remove(); return;}
+        y += speed;
+        e.style.top = y+"px";
+
+        // Çarpma
+        const p = player.getBoundingClientRect();
+        const en = e.getBoundingClientRect();
+        if(
+            p.left < en.right &&
+            p.right > en.left &&
+            p.top < en.bottom &&
+            p.bottom > en.top
+        ){
+            gameOver = true;
+            gameOverScreen.style.display="flex";
+        }
+
+        if(y > window.innerHeight){
+            clearInterval(move);
+            e.remove();
+            score++;
+            scoreEl.innerText = score;
+
+            // Level up
+            if(score % 10 === 0){
+                level++;
+                speed++;
+                levelEl.innerText = level;
+            }
+        }
+    },20);
+}
+
+setInterval(spawnEnemy, 900);
 </script>
 
 </body>

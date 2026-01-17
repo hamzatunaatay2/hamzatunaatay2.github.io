@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeri Baronu v5: Aile ve Şehir</title>
+    <title>Galeri Baronu v6: Sanayi ve Aile</title>
     <style>
         :root { --neon: #00f2ff; --pink: #ff007f; --gold: #ffd700; --dark: #0a0a0a; }
         body { margin: 0; background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
@@ -14,30 +15,26 @@
         #game { display: grid; grid-template-columns: 320px 1fr; height: 100vh; padding-top: 50px; }
         #sidebar { background: var(--dark); border-right: 1px solid #333; padding: 15px; z-index: 500; overflow-y: auto; }
         
-        .btn { background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 12px; width: 100%; margin-bottom: 8px; cursor: pointer; border-radius: 5px; text-align: left; }
-        .btn:hover { border-color: var(--neon); color: var(--neon); }
+        .btn { background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 12px; width: 100%; margin-bottom: 8px; cursor: pointer; border-radius: 5px; text-align: left; transition: 0.2s; }
+        .btn:hover { border-color: var(--neon); color: var(--neon); background: #222; }
+        .btn.holy { border-color: #00ff88; color: #00ff88; }
 
-        #viewport { position: relative; background: #222; overflow: hidden; }
+        #viewport { position: relative; background: #fff; overflow: hidden; }
         canvas { width: 100%; height: 100%; display: block; outline: none; }
         
         #speedo { position: absolute; bottom: 20px; left: 20px; font-size: 35px; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--neon); z-index: 100; pointer-events: none; }
 
-        /* TELEFON SİSTEMİ */
+        /* TELEFON */
         #phone-trigger { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--pink); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; z-index: 3000; box-shadow: 0 0 15px var(--pink); border: none; }
-        
-        #phone { 
-            position: fixed; bottom: -600px; right: 20px; width: 280px; height: 480px; 
-            background: #151515; border: 4px solid #333; border-radius: 30px; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            z-index: 2000; padding: 20px; box-shadow: 0 0 40px rgba(0,0,0,0.9);
-        }
+        #phone { position: fixed; bottom: -600px; right: 20px; width: 280px; height: 480px; background: #151515; border: 4px solid #333; border-radius: 30px; transition: 0.5s; z-index: 2000; padding: 20px; box-shadow: 0 0 40px #000; }
         #phone.active { bottom: 90px; }
-        .app-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
-        .app-icon { background: #222; padding: 20px; border-radius: 15px; text-align: center; font-size: 25px; cursor: pointer; border: 1px solid #333; }
         .app-screen { display: none; height: 100%; flex-direction: column; }
         .app-screen.active { display: flex; }
+        .app-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
+        .app-icon { background: #222; padding: 20px; border-radius: 15px; text-align: center; font-size: 25px; cursor: pointer; }
 
-        #office-layer { position: absolute; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 10; }
-        .dialog-box { background: #fff; color: #000; padding: 25px; border-radius: 15px; width: 85%; max-width: 400px; text-align: center; border: 5px solid var(--neon); font-weight: bold; }
+        #office-layer { position: absolute; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .dialog-box { background: #fff; color: #000; padding: 25px; border-radius: 15px; width: 85%; text-align: center; border: 5px solid var(--neon); }
         
         .hidden { display: none !important; }
     </style>
@@ -46,15 +43,16 @@
 
 <div id="hud">
     <div class="stat">💵 <span id="m-val">0</span>₺</div>
-    <div class="stat">⭐ İtibar: <span id="r-val">0</span></div>
-    <div class="stat">🏠 <span id="f-status" style="color:var(--neon)">Bekar</span></div>
+    <div class="stat">⭐ REP: <span id="r-val">0</span></div>
+    <div class="stat">🏠 <span id="f-status">Bekar</span></div>
 </div>
 
 <div id="game">
     <div id="sidebar">
-        <h3 style="color:var(--neon); margin-top:0;">BARON MERKEZİ</h3>
+        <h3 style="color:var(--neon); margin-top:0;">BARON PANEL</h3>
         <button class="btn" onclick="showOffice()">💼 GALERİ MASASI</button>
         <button class="btn" onclick="startDrive()">🏎️ ŞEHRE ÇIK</button>
+        <button class="btn holy" onclick="goMosque()">🕌 CUMA NAMAZI</button>
         <div id="garage-list" style="margin-top:20px;"></div>
     </div>
 
@@ -75,55 +73,47 @@
 
 <div id="phone">
     <div class="app-screen active" id="phone-home">
-        <div style="text-align:center; font-weight:bold; color:var(--pink); margin-top:10px;">iBaronOS</div>
-        <div style="background:#000; padding:10px; border-radius:10px; margin-top:20px; border-left:4px solid var(--gold);">
-            <small>Durum:</small><br><span id="p-status">Bekar</span>
-        </div>
+        <div style="text-align:center; font-weight:bold; color:var(--pink);">iBaron v6</div>
         <div class="app-grid">
             <div class="app-icon" onclick="openApp('family')">👪</div>
-            <div class="app-icon" onclick="alert('Banka: Borcunuz yoktur.')">🏦</div>
-            <div class="app-icon" onclick="alert('Rehber: Emlakçı, Galericiler...')">📞</div>
+            <div class="app-icon" onclick="openApp('home')">🏠</div>
+            <div class="app-icon" onclick="alert('Sanayi bölgesi aktif!')">🛠️</div>
             <div class="app-icon" onclick="togglePhone()">❌</div>
         </div>
     </div>
 
     <div class="app-screen" id="app-family">
-        <button onclick="openApp('home')" style="background:none; color:var(--neon); border:none; cursor:pointer; padding:0;">⬅ Geri</button>
-        <h3 style="text-align:center;">Aile Planlaması</h3>
-        <p id="family-msg" style="font-size:13px; text-align:center; color:#ccc; height:80px;"></p>
+        <button onclick="openApp('main')" style="background:none; color:var(--neon); border:none; cursor:pointer;">⬅ Geri</button>
+        <h3 style="text-align:center;">Aile & İlişki</h3>
+        <p id="family-msg" style="font-size:12px; text-align:center;"></p>
         <div id="family-btn-area"></div>
+    </div>
+
+    <div class="app-screen" id="app-home">
+        <button onclick="openApp('main')" style="background:none; color:var(--neon); border:none; cursor:pointer;">⬅ Geri</button>
+        <h3 style="text-align:center;">Özel Hayat</h3>
+        <div id="home-actions">
+            <p style="font-size:12px; text-align:center;">Önce evlenmen lazım kral.</p>
+        </div>
     </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
     let state = {
-        money: 600000,
-        rep: 20,
-        garage: [],
-        fLevel: 0,
-        fNames: ["Bekar", "Sözlü", "Nişanlı", "Evli", "Çocuklu (Baron Baba)"],
-        fCosts: [30000, 150000, 400000, 800000, 1500000],
-        fReps: [15, 40, 70, 120, 200]
+        money: 1000000, rep: 50, garage: [], fLevel: 0,
+        fNames: ["Bekar", "Sözlü", "Nişanlı", "Evli", "Çocuklu"],
+        fCosts: [50000, 200000, 500000, 1000000, 2000000]
     };
-
-    const CARS = [
-        { name: "Şahin", price: 180000, color: 0xffffff },
-        { name: "E30", price: 500000, color: 0xaa0000 },
-        { name: "S2000", price: 950000, color: 0x333333 },
-        { name: "G63", price: 6000000, color: 0x222222 }
-    ];
 
     function updateUI() {
         document.getElementById('m-val').innerText = state.money.toLocaleString();
         document.getElementById('r-val').innerText = state.rep;
         document.getElementById('f-status').innerText = state.fNames[state.fLevel];
-        document.getElementById('p-status').innerText = state.fNames[state.fLevel];
-        
         const gl = document.getElementById('garage-list');
-        gl.innerHTML = "<h4>GARAJ</h4>";
+        gl.innerHTML = "<h4>GARAJ</h4>" + (state.garage.length ? "" : "Araba yok.");
         state.garage.forEach((c, i) => {
-            gl.innerHTML += `<div style="background:#111; padding:8px; margin-bottom:5px; display:flex; justify-content:space-between; font-size:12px;">${c.name} <button onclick="sellCar(${i})">SAT</button></div>`;
+            gl.innerHTML += `<div style="background:#111; padding:8px; margin-bottom:5px; display:flex; justify-content:space-between;">${c.name} <button onclick="sellCar(${i})">SAT</button></div>`;
         });
     }
 
@@ -131,147 +121,147 @@
     
     function openApp(app) {
         document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
-        if(app === 'home') document.getElementById('phone-home').classList.add('active');
+        if(app === 'main') document.getElementById('phone-home').classList.add('active');
         if(app === 'family') {
             document.getElementById('app-family').classList.add('active');
-            drawFamilyApp();
+            drawFamily();
+        }
+        if(app === 'home') {
+            document.getElementById('app-home').classList.add('active');
+            drawHome();
         }
     }
 
-    function drawFamilyApp() {
-        const msg = document.getElementById('family-msg');
+    function drawFamily() {
         const area = document.getElementById('family-btn-area');
-        const nextIdx = state.fLevel;
-        
-        const stories = [
-            "Yalnızlık zor. Birisiyle tanışmak için güzel bir akşam yemeği ve çiçek lazım.",
-            "Ciddileşiyoruz. Söz kesmek için altın takılar alman gerekiyor.",
-            "Büyük bir nişan töreni Baron'a yakışır. Şehrin en lüks mekanını tutmalısın.",
-            "Düğün vakti! Şanına yaraşır bir düğünle dünya evine gir.",
-            "Baronluğun bir varise ihtiyacı var. Aileyi büyütme vakti!"
-        ];
-
-        if(nextIdx < 5) {
-            msg.innerText = stories[nextIdx];
-            area.innerHTML = `<button class="btn" style="background:var(--gold); color:#000;" onclick="upgradeFamily()">Geliştir (${state.fCosts[nextIdx].toLocaleString()}₺)</button>`;
-        } else {
-            msg.innerText = "Tebrikler Baron Baba! Artık koca bir ailen var.";
-            area.innerHTML = "";
+        if(state.fLevel < 5) {
+            area.innerHTML = `<button class="btn" onclick="upgradeFamily()">Seviye Atla (${state.fCosts[state.fLevel].toLocaleString()}₺)</button>`;
         }
     }
 
     function upgradeFamily() {
-        let cost = state.fCosts[state.fLevel];
-        let rep = state.fReps[state.fLevel];
-        if(state.money >= cost && state.rep >= rep) {
-            state.money -= cost;
+        if(state.money >= state.fCosts[state.fLevel]) {
+            state.money -= state.fCosts[state.fLevel];
             state.fLevel++;
-            state.rep += 20;
-            updateUI();
-            drawFamilyApp();
-            alert("Hayatında yeni bir kademe atladın!");
-        } else alert("Para veya itibar yetersiz!");
+            state.rep += 30;
+            updateUI(); drawFamily();
+            alert("Yeni bir hayat kademesi!");
+        }
     }
 
-    function showOffice() {
-        isDriving = false;
-        document.getElementById('office-layer').classList.remove('hidden');
-        document.getElementById('speedo').classList.add('hidden');
-        genCustomer();
+    function drawHome() {
+        const area = document.getElementById('home-actions');
+        if(state.fLevel >= 3) {
+            area.innerHTML = `
+                <button class="btn" onclick="alert('Eşinle güzel bir akşam geçirdin. Moral depolandı.')">💏 Karınla Vakit Geçir</button>
+                <button class="btn" onclick="alert('Özel anlar yaşandı... Baronluk enerjisi tazelendi.')">🔥 Özel Etkileşim</button>
+            `;
+        }
     }
 
+    function goMosque() {
+        alert("Cuma namazına gittin. İmamla sohbet ettin: 'Baron dediğin mütevazı olur evlat.'");
+        state.rep += 10;
+        updateUI();
+    }
+
+    function showOffice() { isDriving = false; document.getElementById('office-layer').classList.remove('hidden'); genCustomer(); }
+    
     function genCustomer() {
-        const car = CARS[Math.floor(Math.random()*CARS.length)];
-        const p = Math.floor(car.price * (0.8 + Math.random()*0.4));
-        document.getElementById('dialog-text').innerText = `Tertemiz ${car.name} satıyorum. ${p.toLocaleString()}₺ olur mu?`;
-        document.getElementById('trade-actions').innerHTML = `
-            <button onclick="buyCar('${car.name}', ${p})">AL</button>
-            <button onclick="genCustomer()">KOV</button>
-        `;
+        const p = 200000 + Math.floor(Math.random()*800000);
+        document.getElementById('dialog-text').innerText = `Tertemiz makine, ${p.toLocaleString()}₺ istiyorum.`;
+        document.getElementById('trade-actions').innerHTML = `<button onclick="buyCar('Lüks Araç', ${p})">AL</button> <button onclick="genCustomer()">KOV</button>`;
     }
 
     function buyCar(n, p) {
-        if(state.money >= p) { state.money -= p; state.garage.push({name:n, price:p}); updateUI(); alert("Hayırlı olsun!"); }
-        else alert("Para yok!");
+        if(state.money >= p) { state.money -= p; state.garage.push({name:n, price:p}); updateUI(); alert("Aldık!"); }
     }
 
     function sellCar(i) {
-        const p = Math.floor(state.garage[i].price * (1.1 + Math.random()*0.3));
-        state.money += p; state.rep += 5; state.garage.splice(i, 1); updateUI();
+        state.money += state.garage[i].price * 1.2; state.garage.splice(i, 1); updateUI();
     }
 
     // --- 3D ENGINE ---
     let scene, camera, renderer, player, isDriving = false;
     let speed = 0, angle = 0, velocity = {x:0, z:0}, keys = {};
-    let bBoxes = [];
+    let buildings = [];
 
     function init3D() {
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xbdc3c7);
-        scene.fog = new THREE.Fog(0xbdc3c7, 20, 150);
+        scene.background = new THREE.Color(0xffffff);
+        scene.fog = new THREE.Fog(0xffffff, 10, 150);
 
         camera = new THREE.PerspectiveCamera(60, (window.innerWidth-320)/window.innerHeight, 0.1, 1000);
         renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('stage'), antialias: true });
         renderer.setSize(window.innerWidth - 320, window.innerHeight);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-        const light = new THREE.DirectionalLight(0xffffff, 0.8);
-        light.position.set(50, 100, 50);
-        scene.add(light);
-
-        // Zemin
-        const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshStandardMaterial({color: 0x444444}));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        
+        // Zemin ve Sokak Lambaları
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshStandardMaterial({color: 0xeeeeee}));
         ground.rotation.x = -Math.PI/2;
         scene.add(ground);
-        scene.add(new THREE.GridHelper(2000, 100, 0xffffff, 0x666666));
 
-        // 80 NPC Binalar
         for(let i=0; i<80; i++) {
-            const h = 5 + Math.random()*25;
-            const w = 4 + Math.random()*10;
-            const b = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshStandardMaterial({color: Math.random()*0xffffff}));
-            const x = (Math.random()-0.5)*300;
-            const z = (Math.random()-0.5)*1000;
-            if(Math.abs(x) < 15) continue; // Yol boş kalsın
-            b.position.set(x, h/2, z);
-            b.scale.set(w, h, w);
+            // Sokak Lambası
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 10), new THREE.MeshStandardMaterial({color: 0x333}));
+            const x = (i % 2 === 0 ? 1 : -1) * 20;
+            const z = (i-40) * 40;
+            pole.position.set(x, 5, z);
+            scene.add(pole);
+            
+            const lamp = new THREE.PointLight(0xffaa00, 1, 30);
+            lamp.position.set(x, 10, z);
+            scene.add(lamp);
+
+            // Binalar & Sanayi Bölgesi
+            const h = 5 + Math.random()*30;
+            const b = new THREE.Mesh(new THREE.BoxGeometry(10, h, 10), new THREE.MeshStandardMaterial({color: i > 60 ? 0x555 : 0xddd}));
+            const bx = (Math.random()-0.5)*400;
+            if(Math.abs(bx) < 25) continue;
+            b.position.set(bx, h/2, z);
             scene.add(b);
-            bBoxes.push({x, z, w: w/2+1.5});
+            buildings.push({x:bx, z, w:7});
         }
 
+        // Detaylı Oyuncu Arabası
         player = new THREE.Group();
-        const car = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.8, 4.5), new THREE.MeshStandardMaterial({color: 0xffffff}));
-        car.position.y = 0.5;
-        player.add(car);
+        const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.8, 4.5), new THREE.MeshStandardMaterial({color: 0x111}));
+        body.position.y = 0.6;
+        player.add(body);
+        
+        const far1 = new THREE.SpotLight(0xffffff, 2, 50, 0.5);
+        far1.position.set(-0.8, 0.6, 2.2);
+        far1.target.position.set(-0.8, 0, 10);
+        player.add(far1); player.add(far1.target);
+
+        const far2 = new THREE.SpotLight(0xffffff, 2, 50, 0.5);
+        far2.position.set(0.8, 0.6, 2.2);
+        far2.target.position.set(0.8, 0, 10);
+        player.add(far2); player.add(far2.target);
+
         scene.add(player);
 
         window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
         window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
-        
         loop();
     }
 
     function startDrive() {
-        if(state.garage.length === 0) return alert("Garajda araba yok!");
+        if(state.garage.length === 0) return alert("Araban yok baron!");
         isDriving = true;
         document.getElementById('office-layer').classList.add('hidden');
         document.getElementById('speedo').classList.remove('hidden');
-        player.position.set(0,0,0); speed = 0;
     }
 
     function loop() {
         requestAnimationFrame(loop);
         if(isDriving) {
-            // Kontroller (Hız dengelendi)
-            if(keys['w']) speed += 0.015;
-            else if(keys['s']) speed -= 0.02;
-            else speed *= 0.97;
-
-            speed = Math.max(Math.min(speed, 1.2), -0.3); // Max hız kısıtlandı
+            if(keys['w']) speed += 0.02; else if(keys['s']) speed -= 0.03; else speed *= 0.98;
+            speed = Math.max(Math.min(speed, 1.5), -0.4);
 
             if(Math.abs(speed) > 0.05) {
-                if(keys['a']) angle += 0.04;
-                if(keys['d']) angle -= 0.04;
+                if(keys['a']) angle += 0.04; if(keys['d']) angle -= 0.04;
             }
 
             velocity.x = Math.sin(angle) * speed;
@@ -280,28 +270,22 @@
             player.position.x += velocity.x;
             player.position.z += velocity.z;
             player.rotation.y = angle;
+            player.rotation.z = (velocity.x * -0.1); // Yana yatma fiziği
 
-            // Çarpışma Kontrolü
-            bBoxes.forEach(b => {
+            buildings.forEach(b => {
                 if(Math.abs(player.position.x - b.x) < b.w && Math.abs(player.position.z - b.z) < b.w) {
-                    speed = 0; // Dur
-                    player.position.x -= velocity.x * 2;
-                    player.position.z -= velocity.z * 2;
+                    speed = 0; player.position.x -= velocity.x * 2;
                 }
             });
 
-            camera.position.set(player.position.x - Math.sin(angle)*12, 6, player.position.z - Math.cos(angle)*12);
+            camera.position.set(player.position.x - Math.sin(angle)*15, 8, player.position.z - Math.cos(angle)*15);
             camera.lookAt(player.position);
-            document.getElementById('speedo').innerText = Math.floor(Math.abs(speed)*150) + " KM/H";
-        } else {
-            camera.position.set(15, 10, 15);
-            camera.lookAt(0,0,0);
+            document.getElementById('speedo').innerText = Math.floor(Math.abs(speed)*160) + " KM/H";
         }
         renderer.render(scene, camera);
     }
 
-    init3D();
-    updateUI();
+    init3D(); updateUI();
 </script>
 </body>
 </html>

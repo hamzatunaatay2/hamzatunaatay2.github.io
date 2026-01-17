@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tuna Galeri: Real 3D Drive</title>
+<title>Tuna Galeri: Far Sistemi Update</title>
 <style>
     :root { --bg: #050505; --card: #111; --gold: #ffd700; --red: #ff4d4d; --green: #2ecc71; --blue: #3498db; }
     body { margin: 0; background: var(--bg); color: #fff; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
@@ -15,14 +15,9 @@
     .nav-btn { background: var(--card); border: 1px solid #333; color: #fff; padding: 15px; border-radius: 10px; cursor: pointer; text-align: left; }
     .nav-btn.active { background: var(--blue); border-color: #fff; }
     .stage { background: #000; border-radius: 20px; border: 1px solid #333; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-    
-    /* DRIVE UI */
     #drive-ui { position: absolute; top: 20px; width: 100%; text-align: center; display: none; pointer-events: none; z-index: 50; }
     #timer-display { font-size: 2em; color: var(--red); font-weight: bold; text-shadow: 2px 2px 5px #000; }
-
-    /* SÜRE SEÇİM EKRANI */
-    #time-selector { position: absolute; background: rgba(0,0,0,0.9); padding: 30px; border-radius: 20px; border: 2px solid var(--gold); text-align: center; display: none; z-index: 60; }
-
+    #time-selector { position: absolute; background: rgba(0,0,0,0.95); padding: 30px; border-radius: 20px; border: 2px solid var(--gold); text-align: center; display: none; z-index: 60; }
     .sidebar { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #333; z-index: 10; display: flex; flex-direction: column; gap: 10px; }
     .car-card { background: #000; height: 140px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 5em; border: 2px dashed #444; }
     .btn { border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 5px; }
@@ -57,7 +52,6 @@
 
             <div id="time-selector">
                 <h2 style="color:var(--gold)">Test Sürüşü Süresi</h2>
-                <p>Ne kadar turlamak istersin?</p>
                 <button class="btn btn-blue" onclick="initDrive(1)">1 Dakika</button>
                 <button class="btn btn-blue" onclick="initDrive(2)">2 Dakika</button>
                 <button class="btn btn-blue" onclick="initDrive(5)">5 Dakika</button>
@@ -67,7 +61,7 @@
             <div id="npc-view" style="text-align:center">
                 <div id="npc-avatar" style="font-size: 6em;">🤵</div>
                 <h3 id="npc-name">Mahmut</h3>
-                <p id="npc-text">"Kontağı çevirmeye hazır mısın?"</p>
+                <p id="npc-text">"Görüş açın net olsun kral, farları açtık!"</p>
                 <div id="action-btns" style="width: 250px; margin: 0 auto;"></div>
             </div>
 
@@ -98,23 +92,23 @@
     // --- 3D SETUP ---
     const canvas = document.getElementById('three-canvas');
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x000000, 1, 70);
+    scene.fog = new THREE.Fog(0x000000, 1, 80);
     const camera = new THREE.PerspectiveCamera(75, 2, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
 
-    // Yol ve Çizgiler
+    // Yol
     const roadGroup = new THREE.Group();
     const roadMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
-    const road = new THREE.Mesh(new THREE.PlaneGeometry(15, 200), roadMat);
+    const road = new THREE.Mesh(new THREE.PlaneGeometry(15, 250), roadMat);
     road.rotation.x = -Math.PI/2;
     roadGroup.add(road);
     scene.add(roadGroup);
 
     const lines = [];
-    for(let i=0; i<20; i++) {
-        let l = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 4), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    for(let i=0; i<25; i++) {
+        let l = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 5), new THREE.MeshBasicMaterial({ color: 0xffffff }));
         l.rotation.x = -Math.PI/2;
-        l.position.set(0, 0.05, -i*10);
+        l.position.set(0, 0.05, -i*12);
         roadGroup.add(l);
         lines.push(l);
     }
@@ -123,136 +117,137 @@
     const lamps = [];
     function createLamp(z) {
         const g = new THREE.Group();
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 7), new THREE.MeshStandardMaterial({color:0x333333}));
-        pole.position.set(-7, 3.5, z);
-        const light = new THREE.PointLight(0xffcc00, 20, 20);
-        light.position.set(-6, 6.5, z);
-        g.add(pole, light);
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 8), new THREE.MeshStandardMaterial({color:0x333333}));
+        pole.position.set(-7.5, 4, z);
+        const bulb = new THREE.PointLight(0xffaa00, 15, 25);
+        bulb.position.set(-6, 7.5, z);
+        g.add(pole, bulb);
         scene.add(g);
         lamps.push(g);
     }
-    for(let i=0; i<8; i++) createLamp(-i*25);
+    for(let i=0; i<10; i++) createLamp(-i*30);
 
-    // --- 3D ARABA MODELLEME (Low Poly) ---
+    // --- OYUNCU ARACI VE FARLAR ---
     const playerCar = new THREE.Group();
+    const headlightL = new THREE.SpotLight(0xffffff, 50, 40, Math.PI/6, 0.5);
+    const headlightR = new THREE.SpotLight(0xffffff, 50, 40, Math.PI/6, 0.5);
+
     function buildCar(color) {
         playerCar.clear();
-        // Gövde
         const body = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.6, 3.5), new THREE.MeshStandardMaterial({color}));
         body.position.y = 0.5;
-        // Kabin
         const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 1.8), new THREE.MeshStandardMaterial({color}));
         cabin.position.set(0, 1, -0.2);
-        // Camlar
-        const glass = new THREE.Mesh(new THREE.BoxGeometry(1.41, 0.4, 1.2), new THREE.MeshStandardMaterial({color: 0x33ccff, transparent: true, opacity: 0.6}));
-        glass.position.set(0, 1.05, -0.1);
-        // Tekerlekler
-        const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.4, 12);
-        const wheelMat = new THREE.MeshStandardMaterial({color: 0x111111});
-        const w1 = new THREE.Mesh(wheelGeo, wheelMat); w1.rotation.z = Math.PI/2; w1.position.set(0.8, 0.4, 1.2);
-        const w2 = new THREE.Mesh(wheelGeo, wheelMat); w2.rotation.z = Math.PI/2; w2.position.set(-0.8, 0.4, 1.2);
-        const w3 = new THREE.Mesh(wheelGeo, wheelMat); w3.rotation.z = Math.PI/2; w3.position.set(0.8, 0.4, -1.2);
-        const w4 = new THREE.Mesh(wheelGeo, wheelMat); w4.rotation.z = Math.PI/2; w4.position.set(-0.8, 0.4, -1.2);
-        // Spoiler
-        const spoiler = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.1, 0.4), new THREE.MeshStandardMaterial({color: 0x111111}));
-        spoiler.position.set(0, 0.9, 1.6);
         
-        playerCar.add(body, cabin, glass, w1, w2, w3, w4, spoiler);
+        // Farlar (Görsel)
+        const lampGeo = new THREE.BoxGeometry(0.4, 0.2, 0.1);
+        const lampMat = new THREE.MeshBasicMaterial({color: 0xffffff});
+        const f1 = new THREE.Mesh(lampGeo, lampMat); f1.position.set(0.5, 0.5, -1.76);
+        const f2 = new THREE.Mesh(lampGeo, lampMat); f2.position.set(-0.5, 0.5, -1.76);
+        
+        // Tekerlekler
+        const wMat = new THREE.MeshStandardMaterial({color: 0x111111});
+        const wGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.4, 12);
+        const wheels = [ [0.8,0.4,1.2], [-0.8,0.4,1.2], [0.8,0.4,-1.2], [-0.8,0.4,-1.2] ];
+        wheels.forEach(pos => {
+            const w = new THREE.Mesh(wGeo, wMat); w.rotation.z = Math.PI/2; w.position.set(...pos);
+            playerCar.add(w);
+        });
+
+        // Farları (Işık) Konumlandır
+        headlightL.position.set(0.5, 0.6, -1.7); headlightL.target.position.set(0.5, 0, -20);
+        headlightR.position.set(-0.5, 0.6, -1.7); headlightR.target.position.set(-0.5, 0, -20);
+        
+        playerCar.add(body, cabin, f1, f2, headlightL, headlightR, headlightL.target, headlightR.target);
     }
     scene.add(playerCar);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-    camera.position.set(0, 6, 12);
-    camera.lookAt(0, 0, -2);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.1));
+    camera.position.set(0, 6, 11);
+    camera.lookAt(0, 0, -3);
 
+    // --- ENGELLER (Daha Görünür) ---
     let enemies = [];
     function addEnemy() {
-        const e = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 3), new THREE.MeshStandardMaterial({color: 0x444444}));
-        e.position.set((Math.random()-0.5)*12, 0.5, -80);
-        scene.add(e);
-        enemies.push(e);
-    }
-
-    // --- SÜRÜŞ AKIŞI ---
-    function openTimeSelector() {
-        if(!state.car) return;
-        document.getElementById('time-selector').style.display = "block";
-    }
-
-    function cancelDrive() {
-        document.getElementById('time-selector').style.display = "none";
-    }
-
-    function initDrive(mins) {
-        document.getElementById('time-selector').style.display = "none";
-        driveActive = true; 
-        state.score = 0;
-        driveTimer = mins * 60;
+        const g = new THREE.Group();
+        const eBody = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 3), new THREE.MeshStandardMaterial({color: 0x333333}));
+        eBody.position.y = 0.5;
         
-        document.getElementById('npc-view').style.display = "none";
-        canvas.style.display = "block";
-        document.getElementById('drive-ui').style.display = "block";
+        // Engel Arka Lambaları (Kırmızı Parlama)
+        const stopMat = new THREE.MeshBasicMaterial({color: 0xff0000});
+        const s1 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), stopMat); s1.position.set(0.5, 0.6, 1.51);
+        const s2 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), stopMat); s2.position.set(-0.5, 0.6, 1.51);
         
-        buildCar(state.car.c);
-        
-        driveInterval = setInterval(() => {
-            driveTimer--;
-            let m = Math.floor(driveTimer / 60);
-            let s = driveTimer % 60;
-            document.getElementById('timer-display').innerText = `Kalan: ${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-            if(driveTimer <= 0) endDrive(false);
-        }, 1000);
-
-        animateDrive();
+        g.add(eBody, s1, s2);
+        g.position.set((Math.random()-0.5)*12, 0, -100);
+        scene.add(g);
+        enemies.push(g);
     }
 
+    // --- SÜRÜŞ DÖNGÜSÜ ---
     function animateDrive() {
         if(!driveActive) return;
         requestAnimationFrame(animateDrive);
 
-        const speed = 1.3;
-        lines.forEach(l => { l.position.z += speed; if(l.position.z > 20) l.position.z = -180; });
-        lamps.forEach(l => { l.position.z += speed; if(l.position.z > 30) l.position.z = -170; });
+        const speed = 1.4;
+        lines.forEach(l => { l.position.z += speed; if(l.position.z > 20) l.position.z = -200; });
+        lamps.forEach(l => { l.position.z += speed; if(l.position.z > 30) l.position.z = -200; });
 
-        if(Math.random() < 0.035) addEnemy();
+        if(Math.random() < 0.04) addEnemy();
         enemies.forEach((e, i) => {
-            e.position.z += speed * 1.6;
-            if(Math.abs(e.position.z - playerCar.position.z) < 3 && Math.abs(e.position.x - playerCar.position.x) < 1.6) endDrive(true);
-            if(e.position.z > 20) { scene.remove(e); enemies.splice(i, 1); state.score += 5000; }
+            e.position.z += speed * 1.7;
+            if(Math.abs(e.position.z - playerCar.position.z) < 3.2 && Math.abs(e.position.x - playerCar.position.x) < 1.6) endDrive(true);
+            if(e.position.z > 25) { scene.remove(e); enemies.splice(i, 1); state.score += 5000; }
         });
 
         document.getElementById('drive-score').innerText = state.score.toLocaleString();
         renderer.render(scene, camera);
     }
 
-    function endDrive(crash) {
-        driveActive = false;
-        clearInterval(driveInterval);
-        if(crash) { state.car.p = Math.floor(state.car.p * 0.7); alert("KAZA YAPTIN!"); }
-        else { state.car.p += state.score; alert("Süre bitti! Test sürüşü tamamlandı."); }
+    function initDrive(mins) {
+        document.getElementById('time-selector').style.display = "none";
+        driveActive = true; state.score = 0; driveTimer = mins * 60;
+        document.getElementById('npc-view').style.display = "none";
+        canvas.style.display = "block";
+        document.getElementById('drive-ui').style.display = "block";
+        buildCar(state.car.c);
         
-        enemies.forEach(e => scene.remove(e)); enemies = [];
-        canvas.style.display = "none";
-        document.getElementById('drive-ui').style.display = "none";
-        document.getElementById('npc-view').style.display = "block";
-        updateUI();
+        driveInterval = setInterval(() => {
+            driveTimer--;
+            let m = Math.floor(driveTimer / 60), s = driveTimer % 60;
+            document.getElementById('timer-display').innerText = `Kalan: ${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            if(driveTimer <= 0) endDrive(false);
+        }, 1000);
+        animateDrive();
     }
+
+    function endDrive(crash) {
+        driveActive = false; clearInterval(driveInterval);
+        if(crash) { state.car.p = Math.floor(state.car.p * 0.7); alert("KAZA!"); }
+        else { state.car.p += state.score; alert("Tamamlandı!"); }
+        enemies.forEach(e => scene.remove(e)); enemies = [];
+        canvas.style.display = "none"; document.getElementById('drive-ui').style.display = "none";
+        document.getElementById('npc-view').style.display = "block"; updateUI();
+    }
+
+    function openTimeSelector() { if(state.car) document.getElementById('time-selector').style.display = "block"; }
+    function cancelDrive() { document.getElementById('time-selector').style.display = "none"; }
 
     window.addEventListener('keydown', (e) => {
         if(!driveActive) return;
-        if(e.key === 'a' || e.key === 'ArrowLeft') playerCar.position.x = Math.max(-6, playerCar.position.x - 0.8);
-        if(e.key === 'd' || e.key === 'ArrowRight') playerCar.position.x = Math.min(6, playerCar.position.x + 0.8);
+        if(e.key === 'a' || e.key === 'ArrowLeft') playerCar.position.x = Math.max(-6, playerCar.position.x - 0.85);
+        if(e.key === 'd' || e.key === 'ArrowRight') playerCar.position.x = Math.min(6, playerCar.position.x + 0.85);
     });
 
-    // --- TEMEL FONKSİYONLAR ---
+    // --- UI VE GALERİ ---
     function loc(l) {
         state.loc = l;
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         const area = document.getElementById('action-btns'); area.innerHTML = "";
-        if(l==='galeri') setNPC("🤵", "Mahmut", "Araba jilet gibi.");
+        if(l==='galeri') setNPC("🤵", "Mahmut", "Farlar xenon, önün aydınlık olsun.");
         if(l==='mahalle') {
-            setNPC("👳", "Hacı Abi", "Selamun aleyküm.");
-            area.innerHTML = `<button class="btn btn-gold" onclick="pray()">🕌 NAMAZ KIL</button><button class="btn btn-blue" style="margin-top:5px" onclick="eat()">🛒 YEMEK YE</button>`;
+            setNPC("👳", "Hacı Abi", "Huzur burada.");
+            area.innerHTML = `<button class="btn btn-gold" onclick="pray()">🕌 NAMAZ KIL</button><button class="btn btn-blue" style="margin-top:5px" onclick="eat()">🛒 YEMEK</button>`;
         }
         if(l==='sanayi' && state.car) area.innerHTML = `<button class="btn btn-blue" onclick="modify()">🛠️ MODİFİYE (₺100k)</button>`;
         updateUI();
@@ -278,13 +273,13 @@
     function findCar() {
         let c = cars[Math.floor(Math.random()*cars.length)];
         let p = Math.floor(c.p * 0.9);
-        setNPC("👤", "Satıcı", `${c.n} için ₺${p.toLocaleString()} istiyorum.`);
+        setNPC("👤", "Satıcı", `${c.n} var, düşünür müsün? ₺${p.toLocaleString()}`);
         document.getElementById('action-btns').innerHTML = `<button class="btn btn-green" onclick="buy('${c.n}', ${p}, ${c.c}, '${c.i}')">SATIN AL</button>`;
     }
     function buy(n,p,c,i) { if(state.money>=p){state.money-=p; state.car={n,p,c,i}; loc('galeri');} }
     function sellMenu() {
         let p = Math.floor(state.car.p * (0.8+Math.random()*0.5));
-        setNPC("🤵", "Müşteri", `₺${p.toLocaleString()} veririm.`);
+        setNPC("🤵", "Müşteri", `₺${p.toLocaleString()} nakit çalışır.`);
         document.getElementById('action-btns').innerHTML = `<button class="btn btn-green" onclick="sell(${p})">SATTIM</button>`;
     }
     function sell(p) { state.money+=p; state.car=null; loc('galeri'); }

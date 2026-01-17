@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forbidden Nights: Adult Sim</title>
+    <title>Forbidden Nights v9: Expanded Romance</title>
     <style>
-        :root { --hot-pink: #ff007f; --deep-purple: #2e003e; --gold: #ffd700; }
+        :root { --hot-pink: #ff007f; --deep-purple: #2e003e; --gold: #ffd700; --soft-red: #ff3366; }
         body { margin: 0; background: #050505; color: #fff; font-family: 'Arial', sans-serif; overflow: hidden; }
         
         #ui-top { position: fixed; top: 0; width: 100%; height: 60px; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: space-around; border-bottom: 2px solid var(--hot-pink); z-index: 1000; }
@@ -14,27 +14,70 @@
 
         #main-stage { display: grid; grid-template-columns: 350px 1fr; height: 100vh; padding-top: 60px; }
         
-        /* SOL PANEL: PARTNER LİSTESİ */
         #partner-list { background: #111; padding: 20px; border-right: 1px solid #333; overflow-y: auto; }
         .partner-card { background: #1a1a1a; border: 1px solid #333; padding: 15px; border-radius: 10px; margin-bottom: 15px; cursor: pointer; transition: 0.3s; }
         .partner-card:hover { border-color: var(--hot-pink); transform: scale(1.02); }
         .bar-bg { background: #333; height: 8px; width: 100%; border-radius: 4px; margin-top: 5px; }
         .bar-fill { height: 100%; border-radius: 4px; transition: 0.5s; }
 
-        /* OYUN ALANI */
         #game-view { position: relative; background: radial-gradient(circle, #1a001a 0%, #000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        /* AKSİYON BUTONLARI */
         #action-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 80%; max-width: 500px; margin-top: 20px; }
         .action-btn { background: #222; border: 1px solid var(--hot-pink); color: #fff; padding: 15px; cursor: pointer; border-radius: 5px; font-weight: bold; text-transform: uppercase; }
         .action-btn:hover { background: var(--hot-pink); color: #000; }
 
+        /* TELEFON SİSTEMİ */
+        #phone-trigger { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; z-index: 3000; box-shadow: 0 0 15px var(--gold); }
+        #phone { position: fixed; bottom: -600px; right: 20px; width: 300px; height: 550px; background: #000; border: 5px solid #222; border-radius: 35px; transition: 0.6s cubic-bezier(0.1, 0.7, 1.0, 0.1); z-index: 2000; padding: 20px; box-shadow: 0 0 50px #000; }
+        #phone.active { bottom: 90px; }
+        .app-screen { display: none; height: 100%; flex-direction: column; }
+        .app-screen.active { display: flex; }
+        .app-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 40px; }
+        .app-icon { background: #111; padding: 20px; border-radius: 20px; text-align: center; font-size: 30px; cursor: pointer; border: 1px solid #222; }
+        .app-icon:hover { border-color: var(--gold); }
+
+        /* MESAJLAŞMA EKRANI */
+        #app-messages { padding: 10px; }
+        #chat-window { flex-grow: 1; border: 1px solid #333; padding: 10px; overflow-y: auto; height: 250px; margin-bottom: 10px; background: #0a0a0a; }
+        .message { margin-bottom: 8px; }
+        .user-msg { text-align: right; color: var(--gold); }
+        .partner-msg { text-align: left; color: #ccc; }
+        #message-input { display: flex; }
+        #msg-text { flex-grow: 1; padding: 8px; background: #222; border: 1px solid #555; color: #fff; }
+        #send-btn { background: var(--hot-pink); color: #fff; border: none; padding: 8px 12px; cursor: pointer; }
+
         /* SİNEMATİK EKRAN */
-        #cinematic { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .visual-fx { width: 300px; height: 300px; border-radius: 50%; border: 4px solid var(--hot-pink); display: flex; align-items: center; justify-content: center; font-size: 120px; animation: pulse 0.4s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 20px var(--hot-pink); } 50% { transform: scale(1.1); box-shadow: 0 0 60px var(--hot-pink); } 100% { transform: scale(1); box-shadow: 0 0 20px var(--hot-pink); } }
+        #cinematic { 
+            position: fixed; inset: 0; 
+            background: linear-gradient(to bottom, #100 0%, #000 100%); 
+            z-index: 5000; display: none; 
+            flex-direction: column; align-items: center; justify-content: center; 
+            text-align: center;
+        }
+        #cinematic.active { display: flex; }
+
+        #bedroom-bg {
+            position: absolute; inset: 0;
+            background-image: url('https://i.imgur.com/your_bedroom_bg_image.jpg'); /* Buraya yatak odası görseli eklenecek */
+            background-size: cover; background-position: center;
+            filter: brightness(0.3) blur(5px);
+            z-index: -1;
+        }
+
+        .char-silhouette {
+            font-size: 180px; filter: blur(2px);
+            position: absolute; 
+            animation: moveAndPulse 1.5s infinite alternate;
+        }
+        #char1 { top: 30%; left: 35%; color: var(--soft-red); }
+        #char2 { top: 40%; right: 30%; color: var(--hot-pink); }
+
+        @keyframes moveAndPulse {
+            0% { transform: translateY(0px) scale(1); opacity: 0.7; }
+            100% { transform: translateY(-10px) scale(1.05); opacity: 1; }
+        }
         
-        #dialog-text { font-size: 24px; color: var(--gold); margin-top: 40px; font-style: italic; font-family: 'Georgia', serif; }
+        #cinematic-dialog { font-size: 28px; color: var(--gold); margin-top: 40px; font-style: italic; font-family: 'Georgia', serif; text-shadow: 0 0 15px #000; }
         
         .hidden { display: none !important; }
     </style>
@@ -43,7 +86,7 @@
 
 <div id="ui-top">
     <div class="stat">LİBİDO: <span id="libido">100</span></div>
-    <div class="stat">TECRÜBE: <span id="xp">0</span></div>
+    <div class="stat">KASA: <span id="money">0</span>₺</div>
     <div class="stat">PRESTİJ: <span id="prestige">Acemi</span></div>
 </div>
 
@@ -61,29 +104,78 @@
         </div>
 
         <div id="action-menu" class="hidden">
-            <button class="action-btn" onclick="interact('talk')">Sohbet Et / Etkile</button>
-            <button class="action-btn" onclick="interact('touch')">Dokun / Yakınlaş</button>
-            <button class="action-btn" onclick="interact('gift')">Hediye Ver (500₺)</button>
+            <button class="action-btn" onclick="openApp('messages')">💬 MESAJ AT</button>
+            <button class="action-btn" onclick="interact('gift')">🎁 HEDİYE VER (1000₺)</button>
             <button class="action-btn" style="border-color:var(--gold)" onclick="startSex()">🔥 ODAYA GEÇ</button>
         </div>
     </div>
 </div>
 
+<button id="phone-trigger" onclick="togglePhone()">📱</button>
+
+<div id="phone">
+    <div class="app-screen active" id="phone-home">
+        <div style="text-align:center; font-size:12px; color:#444;">ForbiddenOS v9</div>
+        <div class="app-grid">
+            <div class="app-icon" onclick="openApp('messages')">💬</div>
+            <div class="app-icon" onclick="alert('Profili düzenle...')">⚙️</div>
+            <div class="app-icon" onclick="alert('Yeni partnerler geliyor!')">➕</div>
+            <div class="app-icon" onclick="togglePhone()">❌</div>
+        </div>
+    </div>
+
+    <div class="app-screen" id="app-messages">
+        <button onclick="openApp('main')" style="background:none; color:var(--gold); border:none; cursor:pointer;">⬅ Geri</button>
+        <h3 style="text-align:center; color:var(--hot-pink);">MESAJLAR</h3>
+        <div id="current-chat" class="hidden">
+            <h4 id="chat-partner-name" style="text-align:center; margin:10px 0;"></h4>
+            <div id="chat-window"></div>
+            <div id="message-input">
+                <input type="text" id="msg-text" placeholder="Mesajını yaz..." />
+                <button id="send-btn" onclick="sendMessage()">GÖNDER</button>
+            </div>
+        </div>
+        <div id="no-chat-selected" style="text-align:center; color:#888; margin-top:50px;">
+            Mesajlaşmak için bir partner seç.
+        </div>
+    </div>
+</div>
+
+
 <div id="cinematic">
-    <div class="visual-fx" id="fx-icon">🔥</div>
-    <div id="dialog-text">Aksiyon başlıyor...</div>
-    <div style="margin-top:20px; color:#444;">[ SAHNE DEVAM EDİYOR ]</div>
+    <div id="bedroom-bg"></div>
+    <div id="char1" class="char-silhouette"></div>
+    <div id="char2" class="char-silhouette"></div>
+    <div id="cinematic-dialog">Aksiyon başlıyor...</div>
+    <div style="margin-top:20px; color:#444;">[ SAHNE DEVAM EDİYOR... ]</div>
 </div>
 
 <script>
-    let player = { libido: 100, xp: 0, money: 5000 };
+    let player = { libido: 100, money: 10000, prestige: 0 };
     let partners = [
-        { name: "Selin", icon: "👩‍🦰", desire: 20, trust: 10, desc: "Üniversiteli, utangaç ama meraklı.", active: false },
-        { name: "Arzu", icon: "👩‍💼", desire: 50, trust: 30, desc: "Sekreter, sert ve otoriter kadınlardan hoşlanıyor.", active: false },
-        { name: "Melis", icon: "👱‍♀️", desire: 80, trust: 60, desc: "Gece hayatının yıldızı, sınır tanımıyor.", active: false }
+        { id: 0, name: "Selin", icon: "👩‍🦰", desire: 20, trust: 10, desc: "Üniversiteli, utangaç ama meraklı.", messages: [], chatOpened: false },
+        { id: 1, name: "Arzu", icon: "👩‍💼", desire: 50, trust: 30, desc: "Sekreter, sert ve otoriter kadınlardan hoşlanıyor.", messages: [], chatOpened: false },
+        { id: 2, name: "Melis", icon: "👱‍♀️", desire: 80, trust: 60, desc: "Gece hayatının yıldızı, sınır tanımıyor.", messages: [], chatOpened: false },
+        { id: 3, name: "Elif", icon: "👩‍⚕️", desire: 10, trust: 5, desc: "Hemşire, nazik ve şefkatli. Uzun süreli ilişki arıyor.", messages: [], chatOpened: false },
+        { id: 4, name: "Zeynep", icon: "👩‍🍳", desire: 40, trust: 25, desc: "Şef aşçı, mutfakta olduğu kadar yatakta da ateşli.", messages: [], chatOpened: false },
+        { id: 5, name: "Gizem", icon: "👩‍🎤", desire: 70, trust: 40, desc: "Rock solisti, asi ruhlu ve tutkulu.", messages: [], chatOpened: false },
+        { id: 6, name: "Leyla", icon: "💃", desire: 60, trust: 35, desc: "Dansçı, esnek vücudu ve çekiciliğiyle tanınıyor.", messages: [], chatOpened: false },
+        { id: 7, name: "Aslı", icon: "🎨", desire: 25, trust: 15, desc: "Ressam, sanatsal ruhuyla seni baştan çıkaracak.", messages: [], chatOpened: false },
+        { id: 8, name: "Deniz", icon: "🏊‍♀️", desire: 30, trust: 20, desc: "Yüzücü, atletik ve dinamik bir vücuda sahip.", messages: [], chatOpened: false },
+        { id: 9, name: "Burcu", icon: "🧘‍♀️", desire: 55, trust: 30, desc: "Yoga eğitmeni, sakin ama derin tutkulara sahip.", messages: [], chatOpened: false }
     ];
 
     let currentPartner = null;
+    let selectedChatPartnerId = -1;
+
+    function updateHUD() {
+        document.getElementById('libido').innerText = player.libido;
+        document.getElementById('money').innerText = player.money.toLocaleString();
+        let prestigeText = "Acemi";
+        if(player.prestige > 500) prestigeText = "Çapkın";
+        if(player.prestige > 2000) prestigeText = "Efsane Aşık";
+        document.getElementById('prestige').innerText = prestigeText;
+    }
 
     function renderPartners() {
         const container = document.getElementById('partners-container');
@@ -92,7 +184,7 @@
             container.innerHTML += `
                 <div class="partner-card" onclick="selectPartner(${i})">
                     <div style="font-size:24px">${p.icon} ${p.name}</div>
-                    <div style="font-size:12px; color:#888; margin:5px 0;">Arzu Seviyesi:</div>
+                    <div style="font-size:12px; color:#888; margin:5px 0;">Arzu:</div>
                     <div class="bar-bg"><div class="bar-fill" style="width:${p.desire}%; background:var(--hot-pink)"></div></div>
                     <div style="font-size:12px; color:#888; margin:5px 0;">Güven:</div>
                     <div class="bar-bg"><div class="bar-fill" style="width:${p.trust}%; background:cyan"></div></div>
@@ -109,68 +201,145 @@
         document.getElementById('action-menu').classList.remove('hidden');
     }
 
+    function togglePhone() { document.getElementById('phone').classList.toggle('active'); }
+    
+    function openApp(app) {
+        document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+        if(app === 'main') document.getElementById('phone-home').classList.add('active');
+        if(app === 'messages') { 
+            document.getElementById('app-messages').classList.add('active'); 
+            // Mesajlaşma ekranını partner seçiliyse yükle
+            if(currentPartner) {
+                selectedChatPartnerId = currentPartner.id;
+                loadChat(currentPartner.id);
+                document.getElementById('current-chat').classList.remove('hidden');
+                document.getElementById('no-chat-selected').classList.add('hidden');
+            } else {
+                document.getElementById('current-chat').classList.add('hidden');
+                document.getElementById('no-chat-selected').classList.remove('hidden');
+            }
+        }
+    }
+
     function interact(type) {
         if(!currentPartner) return;
-        if(type === 'talk') {
-            currentPartner.trust += 5;
-            alert(`${currentPartner.name}: "Seninle konuşmak çok keyifli..."`);
-        } else if(type === 'touch') {
-            currentPartner.desire += 10;
-            alert(`${currentPartner.name}: "Ellerin çok sıcak..."`);
-        } else if(type === 'gift') {
-            player.money -= 500;
+        if(type === 'gift') {
+            if(player.money < 1000) { alert("Kasan yetersiz!"); return; }
+            player.money -= 1000;
             currentPartner.trust += 20;
             alert(`${currentPartner.name}: "Bunu benim için mi aldın? Harikasın!"`);
         }
         renderPartners();
+        updateHUD();
+    }
+
+    function loadChat(partnerId) {
+        const chatWindow = document.getElementById('chat-window');
+        chatWindow.innerHTML = "";
+        const p = partners.find(p => p.id === partnerId);
+        document.getElementById('chat-partner-name').innerText = p.name;
+        p.messages.forEach(msg => {
+            const div = document.createElement('div');
+            div.classList.add('message', msg.sender === 'player' ? 'user-msg' : 'partner-msg');
+            div.innerText = msg.text;
+            chatWindow.appendChild(div);
+        });
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function sendMessage() {
+        const msgText = document.getElementById('msg-text').value;
+        if (!msgText.trim()) return;
+
+        const p = partners.find(p => p.id === selectedChatPartnerId);
+        p.messages.push({ sender: 'player', text: msgText });
+
+        // Partnerin otomatik cevabı ve etki
+        setTimeout(() => {
+            let reply = "";
+            let desireIncrease = 0;
+            let trustIncrease = 0;
+
+            if (msgText.toLowerCase().includes("seksy") || msgText.toLowerCase().includes("sürtük") || msgText.toLowerCase().includes("göt")) {
+                reply = "Ne diyorsun sen?! Biraz saygılı ol.";
+                p.trust -= 10;
+                p.desire -= 5;
+            } else if (msgText.toLowerCase().includes("aşkım") || msgText.toLowerCase().includes("tatlım")) {
+                reply = "Seni duymak güzel :)";
+                p.trust += 5;
+                p.desire += 5;
+            } else if (msgText.toLowerCase().includes("ne yapıyorsun") || msgText.toLowerCase().includes("nasılsın")) {
+                reply = "İyiyim, sen?";
+            } else if (msgText.toLowerCase().includes("öpücük") || msgText.toLowerCase().includes("öpüşelim")) {
+                reply = "Umm, çok ateşlisin 🔥";
+                p.desire += 15;
+            } else if (msgText.toLowerCase().includes("çıplak") || msgText.toLowerCase().includes("soyunsan")) {
+                reply = "Aaaah... Bunun için biraz daha beklemelisin 😉";
+                p.desire += 20;
+            } else {
+                reply = "Hmm, ilginç...";
+            }
+            
+            p.messages.push({ sender: 'partner', text: reply });
+            loadChat(selectedChatPartnerId);
+            renderPartners(); // Barların güncellenmesi için
+        }, 1000);
+
+        document.getElementById('msg-text').value = '';
+        loadChat(selectedChatPartnerId); // Mesajı hemen görmek için
     }
 
     function startSex() {
-        if(currentPartner.desire < 40) {
-            alert("Henüz o kadar yakın değilsiniz, biraz daha etkilemen lazım!");
+        if (!currentPartner) { alert("Önce bir partner seçmelisin!"); return; }
+        if (currentPartner.desire < 60 || currentPartner.trust < 40) {
+            alert("Henüz yeterince hazır değil. Biraz daha etkilemen lazım!");
             return;
         }
 
         const cin = document.getElementById('cinematic');
-        const txt = document.getElementById('dialog-text');
-        const icons = ["🔥", "💋", "👅", "💦", "🔞"];
-        const lines = [
-            `${currentPartner.name}: "Sonunda yalnız kaldık..."`,
-            "Kıyafetler yavaşça yere düşüyor...",
-            "Nefes alışverişleri hızlanıyor...",
-            "Vücutlar birbirine kenetlendi.",
-            `${currentPartner.name}: "Daha sert... Lütfen!"`,
-            "Zirveye ulaşıldı!"
+        const dialogText = document.getElementById('cinematic-dialog');
+        const char1 = document.getElementById('char1');
+        const char2 = document.getElementById('char2');
+        
+        char1.innerText = currentPartner.icon;
+        char2.innerText = "♂️"; // Player icon
+
+        const cinematicActions = [
+            { text: `${currentPartner.name}: "Sonunda baş başayız..."`, icon1: currentPartner.icon, icon2: "♂️" },
+            { text: "Eller birbirini buluyor...", icon1: "💑", icon2: " " },
+            { text: `${currentPartner.name}: "Çok ateşlisin..."`, icon1: "🔥", icon2: "🔥" },
+            { text: "Nefesler kesiliyor, ten tene değiyor...", icon1: "💋", icon2: " " },
+            { text: `${currentPartner.name}: "Beni kendine al..."`, icon1: "💦", icon2: " " },
+            { text: "Tutku zirveye ulaşıyor...", icon1: "🔞", icon2: "🔞" },
+            { text: "Vücutlar gevşiyor, sakin bir huzur...", icon1: "😴", icon2: "😴" },
         ];
 
-        cin.style.display = 'flex';
+        cin.classList.add('active');
         let step = 0;
         
         const interval = setInterval(() => {
-            if(step < lines.length) {
-                txt.innerText = lines[step];
-                document.getElementById('fx-icon').innerText = icons[step % icons.length];
+            if(step < cinematicActions.length) {
+                dialogText.innerText = cinematicActions[step].text;
+                char1.innerText = cinematicActions[step].icon1;
+                char2.innerText = cinematicActions[step].icon2;
                 step++;
             }
-        }, 1200);
+        }, 2200); // Her adım 2.2 saniye
 
         setTimeout(() => {
             clearInterval(interval);
-            cin.style.display = 'none';
-            player.xp += 100;
-            currentPartner.desire = 10; // Deşarj oldu
+            cin.classList.remove('active');
+            player.prestige += 100;
+            player.libido = 100; // Libido sıfırlandı
+            currentPartner.desire = 20; // Deşarj oldu
+            currentPartner.trust += 10; // Yakınlık arttı
             updateHUD();
             renderPartners();
-            alert("Harika bir geceydi. Tecrübe kazandın!");
-        }, 8000);
+            alert("Muhteşem bir geceydi, ilişkiniz derinleşti.");
+        }, cinematicActions.length * 2200); // Toplam süre
     }
 
-    function updateHUD() {
-        document.getElementById('xp').innerText = player.xp;
-        if(player.xp > 500) document.getElementById('prestige').innerText = "Çapkın";
-        if(player.xp > 2000) document.getElementById('prestige').innerText = "Efsane Aşık";
-    }
-
+    updateHUD();
     renderPartners();
 </script>
 </body>

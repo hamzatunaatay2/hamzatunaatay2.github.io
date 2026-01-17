@@ -1,119 +1,177 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>Vice City Madness | Hamza Tuna</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-body{overflow:hidden;background:linear-gradient(#12004d,#000);}
-#game{position:relative;width:100vw;height:100vh;overflow:hidden;}
-#road{position:absolute;left:0;top:-200%;width:100%;height:400%;
-  background:repeating-linear-gradient(#1f1f1f 0px,#1f1f1f 40px,#2a2a2a 40px,#2a2a2a 80px);
-  animation:road 1s linear infinite;}
-@keyframes road{from{top:-200%}to{top:0}}
-.car{width:50px;height:90px;border-radius:8px;background:#ff2f92;
-  position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
-  box-shadow:0 0 20px #ff2f92;}
-.enemy{width:50px;height:90px;border-radius:8px;background:#f5f5f5;position:absolute;top:-120px;}
-.police{background:#19c7ff;box-shadow:0 0 14px #19c7ff;}
-#hud{position:absolute;top:12px;left:12px;color:#7fffe6;font-size:16px;line-height:1.4;z-index:10;}
-#hud b{color:#00ffd0}
-#nitroBar{width:120px;height:8px;background:#1b1b1b;border-radius:6px;margin-top:6px;overflow:hidden;}
-#nitroFill{height:100%;width:100%;background:#ff9f1a;}
-#over{position:absolute;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;flex-direction:column;color:#fff;font-size:28px;z-index:30;}
-#over small{opacity:.7;margin-top:6px;}
-.palm{position:absolute;bottom:0;width:40px;height:120px;background:linear-gradient(#2b8a3e,#0b3d1f);border-radius:8px 8px 0 0;opacity:.6;}
-.palm:before{content:"";position:absolute;top:-30px;left:-20px;width:80px;height:30px;border-radius:50%;background:radial-gradient(circle,#2ecc71,#0b3d1f);}
-#mobile{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:14px;z-index:20;}
-.mbtn{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;user-select:none;}
-.mbtn:active{transform:scale(.95);}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forbidden Nights: Adult Sim</title>
+    <style>
+        :root { --hot-pink: #ff007f; --deep-purple: #2e003e; --gold: #ffd700; }
+        body { margin: 0; background: #050505; color: #fff; font-family: 'Arial', sans-serif; overflow: hidden; }
+        
+        #ui-top { position: fixed; top: 0; width: 100%; height: 60px; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: space-around; border-bottom: 2px solid var(--hot-pink); z-index: 1000; }
+        .stat { font-weight: bold; font-size: 18px; }
+        .stat span { color: var(--hot-pink); }
+
+        #main-stage { display: grid; grid-template-columns: 350px 1fr; height: 100vh; padding-top: 60px; }
+        
+        /* SOL PANEL: PARTNER LİSTESİ */
+        #partner-list { background: #111; padding: 20px; border-right: 1px solid #333; overflow-y: auto; }
+        .partner-card { background: #1a1a1a; border: 1px solid #333; padding: 15px; border-radius: 10px; margin-bottom: 15px; cursor: pointer; transition: 0.3s; }
+        .partner-card:hover { border-color: var(--hot-pink); transform: scale(1.02); }
+        .bar-bg { background: #333; height: 8px; width: 100%; border-radius: 4px; margin-top: 5px; }
+        .bar-fill { height: 100%; border-radius: 4px; transition: 0.5s; }
+
+        /* OYUN ALANI */
+        #game-view { position: relative; background: radial-gradient(circle, #1a001a 0%, #000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        /* AKSİYON BUTONLARI */
+        #action-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 80%; max-width: 500px; margin-top: 20px; }
+        .action-btn { background: #222; border: 1px solid var(--hot-pink); color: #fff; padding: 15px; cursor: pointer; border-radius: 5px; font-weight: bold; text-transform: uppercase; }
+        .action-btn:hover { background: var(--hot-pink); color: #000; }
+
+        /* SİNEMATİK EKRAN */
+        #cinematic { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .visual-fx { width: 300px; height: 300px; border-radius: 50%; border: 4px solid var(--hot-pink); display: flex; align-items: center; justify-content: center; font-size: 120px; animation: pulse 0.4s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 20px var(--hot-pink); } 50% { transform: scale(1.1); box-shadow: 0 0 60px var(--hot-pink); } 100% { transform: scale(1); box-shadow: 0 0 20px var(--hot-pink); } }
+        
+        #dialog-text { font-size: 24px; color: var(--gold); margin-top: 40px; font-style: italic; font-family: 'Georgia', serif; }
+        
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
-<div id="game">
-  <div id="road"></div>
-  <div class="palm" style="left:6%"></div>
-  <div class="palm" style="left:88%"></div>
-  <div class="car" id="player"></div>
-  <div id="hud">
-    Skor: <b id="score">0</b><br>
-    Seviye: <b id="level">1</b><br>
-    Rekor: <b id="best">0</b>
-    <div id="nitroBar"><div id="nitroFill"></div></div>
-  </div>
-  <div id="mobile">
-    <div class="mbtn" id="left">◀</div>
-    <div class="mbtn" id="nitro">⚡</div>
-    <div class="mbtn" id="right">▶</div>
-  </div>
-  <div id="over">
-    💀 GAME OVER<br>
-    <small>Yenile → tekrar</small>
-  </div>
+
+<div id="ui-top">
+    <div class="stat">LİBİDO: <span id="libido">100</span></div>
+    <div class="stat">TECRÜBE: <span id="xp">0</span></div>
+    <div class="stat">PRESTİJ: <span id="prestige">Acemi</span></div>
+</div>
+
+<div id="main-stage">
+    <div id="partner-list">
+        <h2 style="color:var(--hot-pink)">PARTNERLER</h2>
+        <div id="partners-container"></div>
+    </div>
+
+    <div id="game-view">
+        <div id="char-display" style="text-align:center;">
+            <div id="char-img" style="font-size:150px; margin-bottom:20px;">👤</div>
+            <h2 id="char-name">Bir partner seç...</h2>
+            <p id="char-desc" style="color:#888;">Etkileşime geçmek için soldan birini seçmelisin.</p>
+        </div>
+
+        <div id="action-menu" class="hidden">
+            <button class="action-btn" onclick="interact('talk')">Sohbet Et / Etkile</button>
+            <button class="action-btn" onclick="interact('touch')">Dokun / Yakınlaş</button>
+            <button class="action-btn" onclick="interact('gift')">Hediye Ver (500₺)</button>
+            <button class="action-btn" style="border-color:var(--gold)" onclick="startSex()">🔥 ODAYA GEÇ</button>
+        </div>
+    </div>
+</div>
+
+<div id="cinematic">
+    <div class="visual-fx" id="fx-icon">🔥</div>
+    <div id="dialog-text">Aksiyon başlıyor...</div>
+    <div style="margin-top:20px; color:#444;">[ SAHNE DEVAM EDİYOR ]</div>
 </div>
 
 <script>
-// GAME STATE
-const player=document.getElementById("player");
-const game=document.getElementById("game");
-const scoreEl=document.getElementById("score");
-const levelEl=document.getElementById("level");
-const bestEl=document.getElementById("best");
-const nitroFill=document.getElementById("nitroFill");
-const over=document.getElementById("over");
+    let player = { libido: 100, xp: 0, money: 5000 };
+    let partners = [
+        { name: "Selin", icon: "👩‍🦰", desire: 20, trust: 10, desc: "Üniversiteli, utangaç ama meraklı.", active: false },
+        { name: "Arzu", icon: "👩‍💼", desire: 50, trust: 30, desc: "Sekreter, sert ve otoriter kadınlardan hoşlanıyor.", active: false },
+        { name: "Melis", icon: "👱‍♀️", desire: 80, trust: 60, desc: "Gece hayatının yıldızı, sınır tanımıyor.", active: false }
+    ];
 
-let x=innerWidth/2-25, score=0, level=1, speed=4;
-let nitro=100, nitroOn=false, dead=false;
-bestEl.textContent=localStorage.getItem("gta_best")||0;
+    let currentPartner = null;
 
-// MUSIC (click to start)
-let music;
-document.addEventListener("click",()=>{if(!music){music=new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_4b2e6e9e7c.mp3?filename=retro-funk-11254.mp3");music.loop=true;music.volume=.4;music.play().catch(()=>{});}}, {once:true});
+    function renderPartners() {
+        const container = document.getElementById('partners-container');
+        container.innerHTML = "";
+        partners.forEach((p, i) => {
+            container.innerHTML += `
+                <div class="partner-card" onclick="selectPartner(${i})">
+                    <div style="font-size:24px">${p.icon} ${p.name}</div>
+                    <div style="font-size:12px; color:#888; margin:5px 0;">Arzu Seviyesi:</div>
+                    <div class="bar-bg"><div class="bar-fill" style="width:${p.desire}%; background:var(--hot-pink)"></div></div>
+                    <div style="font-size:12px; color:#888; margin:5px 0;">Güven:</div>
+                    <div class="bar-bg"><div class="bar-fill" style="width:${p.trust}%; background:cyan"></div></div>
+                </div>
+            `;
+        });
+    }
 
-// INPUT
-document.addEventListener("keydown",e=>{if(dead)return;if(e.key==="ArrowLeft") x-=24;if(e.key==="ArrowRight") x+=24;if(e.code==="Space") nitroOn=true;});
-document.addEventListener("keyup",e=>{if(e.code==="Space") nitroOn=false;});
-["left","right","nitro"].forEach(id=>{const el=document.getElementById(id);el.addEventListener("touchstart",e=>{e.preventDefault();if(id==="left") x-=24;if(id==="right") x+=24;if(id==="nitro") nitroOn=true;});el.addEventListener("touchend",()=>{if(id==="nitro") nitroOn=false;});});
+    function selectPartner(i) {
+        currentPartner = partners[i];
+        document.getElementById('char-name').innerText = currentPartner.name;
+        document.getElementById('char-img').innerText = currentPartner.icon;
+        document.getElementById('char-desc').innerText = currentPartner.desc;
+        document.getElementById('action-menu').classList.remove('hidden');
+    }
 
-// BOUNDS
-function clamp(){x=Math.max(0,Math.min(innerWidth-50,x));player.style.left=x+"px";}
-setInterval(clamp,16);
-
-// ENEMIES
-function spawnEnemy(){
-    if(dead) return;
-    const e=document.createElement("div");
-    e.className=Math.random()>.6?"enemy police":"enemy";
-    e.style.left=Math.random()*(innerWidth-50)+"px";
-    game.appendChild(e);
-    let y=-120;
-    const t=setInterval(()=>{
-        if(dead){clearInterval(t);e.remove();return;}
-        let v=speed+(nitroOn&&nitro>0?3:0);
-        y+=v;e.style.top=y+"px";
-        const p=player.getBoundingClientRect(), n=e.getBoundingClientRect();
-        if(p.left<n.right&&p.right>n.left&&p.top<n.bottom&&p.bottom>n.top){
-            dead=true;over.style.display="flex";
-            localStorage.setItem("gta_best",Math.max(+bestEl.textContent,score));
+    function interact(type) {
+        if(!currentPartner) return;
+        if(type === 'talk') {
+            currentPartner.trust += 5;
+            alert(`${currentPartner.name}: "Seninle konuşmak çok keyifli..."`);
+        } else if(type === 'touch') {
+            currentPartner.desire += 10;
+            alert(`${currentPartner.name}: "Ellerin çok sıcak..."`);
+        } else if(type === 'gift') {
+            player.money -= 500;
+            currentPartner.trust += 20;
+            alert(`${currentPartner.name}: "Bunu benim için mi aldın? Harikasın!"`);
         }
-        if(y>innerHeight){clearInterval(t);e.remove();score++;scoreEl.textContent=score;if(score%10===0){level++;levelEl.textContent=level;speed++;}}
-    },20);
-}
-setInterval(spawnEnemy,900);
+        renderPartners();
+    }
 
-// NITRO
-setInterval(()=>{
-    if(nitroOn && nitro>0) nitro-=2; else nitro=Math.min(100,nitro+.6);
-    nitroFill.style.width=nitro+"%";
-},50);
+    function startSex() {
+        if(currentPartner.desire < 40) {
+            alert("Henüz o kadar yakın değilsiniz, biraz daha etkilemen lazım!");
+            return;
+        }
 
-// EASTER EGGS
-document.addEventListener("keydown",e=>{
-    if(e.key==="e"){document.body.style.background=`radial-gradient(circle,#${Math.floor(Math.random()*16777215).toString(16)},#000)`;}
-    if(e.key==="r"){speed+=1;}
-    if(e.key==="t"){score+=5;scoreEl.textContent=score;}
-});
+        const cin = document.getElementById('cinematic');
+        const txt = document.getElementById('dialog-text');
+        const icons = ["🔥", "💋", "👅", "💦", "🔞"];
+        const lines = [
+            `${currentPartner.name}: "Sonunda yalnız kaldık..."`,
+            "Kıyafetler yavaşça yere düşüyor...",
+            "Nefes alışverişleri hızlanıyor...",
+            "Vücutlar birbirine kenetlendi.",
+            `${currentPartner.name}: "Daha sert... Lütfen!"`,
+            "Zirveye ulaşıldı!"
+        ];
+
+        cin.style.display = 'flex';
+        let step = 0;
+        
+        const interval = setInterval(() => {
+            if(step < lines.length) {
+                txt.innerText = lines[step];
+                document.getElementById('fx-icon').innerText = icons[step % icons.length];
+                step++;
+            }
+        }, 1200);
+
+        setTimeout(() => {
+            clearInterval(interval);
+            cin.style.display = 'none';
+            player.xp += 100;
+            currentPartner.desire = 10; // Deşarj oldu
+            updateHUD();
+            renderPartners();
+            alert("Harika bir geceydi. Tecrübe kazandın!");
+        }, 8000);
+    }
+
+    function updateHUD() {
+        document.getElementById('xp').innerText = player.xp;
+        if(player.xp > 500) document.getElementById('prestige').innerText = "Çapkın";
+        if(player.xp > 2000) document.getElementById('prestige').innerText = "Efsane Aşık";
+    }
+
+    renderPartners();
 </script>
 </body>
 </html>

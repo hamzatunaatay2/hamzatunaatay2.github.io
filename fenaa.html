@@ -2,38 +2,91 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Araba Satma Simülasyonu</title>
+<title>Retro Araba Galerisi</title>
+
 <style>
-  body {
-    background:#111;
-    color:white;
-    font-family:Arial;
-    text-align:center;
-    margin-top:50px;
-  }
-  input, button {
-    font-size:18px;
-    padding:10px;
-    margin:5px;
-  }
-  .kutu {
-    border:2px solid #444;
-    padding:20px;
-    width:400px;
-    margin:auto;
-  }
+body {
+  background:#111;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+  margin-top:30px;
+}
+
+select, input, button {
+  font-size:16px;
+  padding:8px;
+  margin:5px;
+}
+
+/* --- RETRO ARABA --- */
+.araba {
+  position: relative;
+  width: 160px;
+  height: 60px;
+  margin: 30px auto;
+}
+
+.govde {
+  position: absolute;
+  width: 160px;
+  height: 40px;
+  background: #c0392b;
+  top: 10px;
+}
+
+.cam {
+  position: absolute;
+  width: 60px;
+  height: 20px;
+  background: #3498db;
+  top: 0;
+  left: 50px;
+}
+
+.teker {
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  background: black;
+  border-radius: 50%;
+  bottom: -10px;
+}
+
+.teker.sol { left: 20px; }
+.teker.sag { right: 20px; }
+
+/* Model renkleri */
+.clio .govde { background:#27ae60; }
+.egea .govde { background:#f39c12; }
+.bmw .govde { background:#2980b9; }
+.retro .govde { background:#8e44ad; }
 </style>
 </head>
+
 <body>
 
-<h1>🚗 Araba Satma Simülasyonu</h1>
-<h2>Bakiyen: 💰 <span id="para">0</span> TL</h2>
+<h1>🚗 Retro Araba Galerisi</h1>
+<h2>Bakiye: <span id="para">0</span> TL</h2>
 
-<div class="kutu">
-  <p>Arabayı kaça satıyorsun?</p>
-  <input type="number" id="fiyat" placeholder="Fiyat gir">
-  <br>
-  <button onclick="satis()">Satış Yap</button>
+<select id="model" onchange="goster()">
+  <option value="clio">Renault Clio</option>
+  <option value="egea">Fiat Egea</option>
+  <option value="bmw">BMW 3.20</option>
+  <option value="retro">Retro 1985</option>
+</select>
+
+<br>
+<input id="fiyat" type="number" placeholder="Satış fiyatı">
+<br>
+<button onclick="satis()">Sat</button>
+
+<!-- ARABA ÇİZİMİ -->
+<div id="araba" class="araba clio">
+  <div class="cam"></div>
+  <div class="govde"></div>
+  <div class="teker sol"></div>
+  <div class="teker sag"></div>
 </div>
 
 <p id="sonuc"></p>
@@ -41,31 +94,40 @@
 <script>
 let para = 0;
 
-function satis() {
-  let fiyat = Number(document.getElementById("fiyat").value);
-  let sonuc = document.getElementById("sonuc");
+const arabalar = {
+  clio:  { taban:700000, talep:0.8 },
+  egea:  { taban:750000, talep:0.85 },
+  bmw:   { taban:1800000, talep:0.6 },
+  retro: { taban:450000, talep:0.95 } // retro ucuz ama çok tutulur
+};
 
-  if (fiyat <= 0) {
-    sonuc.innerText = "Adam bedava mı alacak aq?";
+function goster() {
+  let secim = document.getElementById("model").value;
+  let arabaDiv = document.getElementById("araba");
+  arabaDiv.className = "araba " + secim;
+}
+
+function satis() {
+  let secim = document.getElementById("model").value;
+  let fiyat = parseInt(document.getElementById("fiyat").value);
+  let sonuc = document.getElementById("sonuc");
+  let araba = arabalar[secim];
+
+  if (isNaN(fiyat) || fiyat <= 0) {
+    sonuc.innerText = "Fiyat gir aq 😄";
     return;
   }
 
-  let sans = Math.random();
+  if (fiyat > araba.taban * 1.4) {
+    sonuc.innerText = "Çok pahalı, müşteri kaçtı ❌";
+    return;
+  }
 
-  if (sans < 0.4) {
-    // Kabul
+  if (Math.random() < araba.talep) {
     para += fiyat;
-    sonuc.innerText = "Müşteri kabul etti! +" + fiyat + " TL 💸";
-  } 
-  else if (sans < 0.8) {
-    // Pazarlık
-    let yeniFiyat = Math.floor(fiyat * (0.7 + Math.random() * 0.2));
-    para += yeniFiyat;
-    sonuc.innerText = "Pazarlık oldu! " + yeniFiyat + " TL'ye sattın 🤝";
-  } 
-  else {
-    // Kaçtı
-    sonuc.innerText = "Müşteri kaçtı ❌";
+    sonuc.innerText = "Satıldı! +" + fiyat + " TL 💰";
+  } else {
+    sonuc.innerText = "Pazarlık olmadı, müşteri gitti ❌";
   }
 
   document.getElementById("para").innerText = para;

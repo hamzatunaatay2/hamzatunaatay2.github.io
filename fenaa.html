@@ -1,14 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
 <title>Galerici Tycoon: Tefeci Belası</title>
 <style>
-    body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #000; color: white; }
-    #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; }
+    body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #111; color: white; }
+    #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; z-index: 10; }
     
-    .top-panel { pointer-events: auto; background: rgba(20,20,20,0.9); padding: 15px; display: flex; gap: 15px; border-radius: 15px; align-self: center; border: 1px solid #444; backdrop-filter: blur(10px); }
+    .top-panel { pointer-events: auto; background: rgba(0,0,0,0.85); padding: 15px; display: flex; gap: 15px; border-radius: 15px; align-self: center; border: 1px solid #444; backdrop-filter: blur(10px); }
     .stat-box { text-align: center; min-width: 70px; border-right: 1px solid #333; padding-right: 10px; }
     .stat-val { font-size: 1.1em; font-weight: bold; display: block; color: #4caf50; }
     .stat-label { font-size: 0.65em; color: #aaa; text-transform: uppercase; }
@@ -16,32 +15,31 @@
     .bottom-panel { pointer-events: auto; display: flex; justify-content: space-between; align-items: flex-end; width: 100%; }
     .panel-box { background: rgba(10,10,10,0.95); padding: 15px; border-radius: 15px; width: 280px; border: 1px solid #555; }
     
-    .car-img-container { width: 100%; height: 130px; background: #111; border-radius: 10px; margin-bottom: 10px; overflow: hidden; border: 1px solid #444; }
-    #carPhoto { width: 100%; height: 100%; object-fit: cover; }
+    .car-img-container { width: 100%; height: 140px; background: #000; border-radius: 10px; margin-bottom: 10px; overflow: hidden; border: 2px solid #444; }
+    #carPhoto { width: 100%; height: 100%; object-fit: contain; background: #222; }
 
-    button { width: 100%; padding: 8px; margin-top: 5px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.2s; color: white; }
-    button:hover { filter: brightness(1.2); }
+    button { width: 100%; padding: 10px; margin-top: 5px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.2s; color: white; }
+    button:hover { opacity: 0.8; transform: scale(1.02); }
     .btn-green { background: #2e7d32; }
     .btn-blue { background: #1565c0; }
     .btn-gold { background: #ff9800; color: black; }
     .btn-red { background: #d32f2f; }
-    .btn-tefeci { background: #424242; border: 1px solid red; color: #ff5252; }
-    .btn-next { background: #673ab7; margin-top: 10px; height: 40px; font-size: 1.1em; }
+    .btn-tefeci { background: #000; border: 1px solid red; color: #ff5252; }
+    .btn-next { background: #673ab7; margin-top: 10px; font-size: 1.1em; }
 
-    #msg-box { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 30px; border-radius: 15px; display: none; z-index: 200; text-align: center; border: 3px solid red; width: 400px; }
-    .game-over { color: red; font-size: 2em; margin-bottom: 20px; }
+    #msg-box { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 30px; border-radius: 15px; display: none; z-index: 200; text-align: center; border: 3px solid red; width: 350px; pointer-events: auto; }
 </style>
 </head>
 <body>
 
 <div id="msg-box">
     <div id="msg-content"></div>
-    <button id="restart-btn" style="display:none; background:white; color:black; margin-top:20px;" onclick="location.reload()">YENİ KARİYERE BAŞLA</button>
+    <button id="restart-btn" style="display:none; background:white; color:black; margin-top:20px;" onclick="location.reload()">YENİ KARİYER</button>
 </div>
 
 <div id="ui-layer">
     <div class="top-panel">
-        <div class="stat-box"><span class="stat-val" id="dayTxt" style="color:cyan">Pzt</span><span class="stat-label">GÜN</span></div>
+        <div class="stat-box"><span class="stat-val" id="dayTxt">Pzt</span><span class="stat-label">GÜN</span></div>
         <div class="stat-box"><span class="stat-val" id="moneyTxt">₺300k</span><span class="stat-label">NAKİT</span></div>
         <div class="stat-box"><span class="stat-val" id="debtTxt" style="color:#ff5252">₺0</span><span class="stat-label">BORÇ</span></div>
         <div class="stat-box"><span class="stat-val" id="hungerTxt" style="color:orange">20%</span><span class="stat-label">AÇLIK</span></div>
@@ -50,17 +48,19 @@
 
     <div class="bottom-panel">
         <div class="panel-box">
-            <h4 style="margin:0 0 10px 0; color:red;">💀 KARANLIK İŞLER</h4>
-            <button class="btn-tefeci" onclick="loan()">💰 Tefeciden ₺100.000 Çek</button>
-            <button class="btn-green" onclick="payDebt()">🏦 Borç Öde (₺50.000)</button>
+            <h4 style="margin:0 0 10px 0; color:red;">💀 TEFECİ & YAŞAM</h4>
+            <button class="btn-tefeci" onclick="loan()">💰 Tefeciden ₺100k Çek</button>
+            <button class="btn-green" onclick="payDebt()">🏦 Borç Öde (₺50k)</button>
             <hr style="border:0.5px solid #333">
             <button class="btn-red" onclick="action('market')">🛒 Market (-₺1,000)</button>
-            <button class="btn-gold" onclick="action('mosque')">🕌 Cami (Tövbe Et)</button>
+            <button class="btn-gold" onclick="action('mosque')">🕌 Cami (Huzur)</button>
             <button class="btn-next" onclick="nextDay()">🌙 GÜNÜ BİTİR</button>
         </div>
 
         <div class="panel-box">
-            <div class="car-img-container"><img id="carPhoto" src="https://tse1.mm.bing.net/th?id=OIP.cad03b32052be58d34980d41b80fa82f"></div>
+            <div class="car-img-container">
+                <img id="carPhoto" src="https://images.tcdn.com.tr/item/original/2112/03/tofas-sahin-1224211120235948.jpg" onerror="this.src='https://via.placeholder.com/300x150?text=Araba+Yuklenemedi'">
+            </div>
             <input type="text" id="galeryName" value="Tuna Galeri" style="background:none; border:none; color:gold; font-size:1.1em; font-weight:bold; width:100%; text-align:center; pointer-events:auto;">
             <p id="carInfo" style="margin:5px 0; text-align:center; font-size:0.85em; color:#aaa;">Tofaş Şahin | Seviye 1</p>
             <button class="btn-blue" onclick="sellCar()">🚗 Araba Sat (Piyasa)</button>
@@ -69,11 +69,16 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-const carPhotos = ["https://tse1.mm.bing.net/th?id=OIP.cad03b32052be58d34980d41b80fa82f", "https://tse2.mm.bing.net/th?id=OIP.abc123color", "https://tse3.mm.bing.net/th?id=OIP.xyz789color"];
-const days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
+// Görsel listesi - Eğer resimler yine gelmezse placeholder devreye girer
+const carPhotos = [
+    "https://images.tcdn.com.tr/item/original/2112/03/tofas-sahin-1224211120235948.jpg",
+    "https://images.tcdn.com.tr/item/original/2205/17/fiat-egea-1.3-multijet-urban-plus-17052022094235.jpg",
+    "https://images.tcdn.com.tr/item/original/2103/12/bmw-3-serisi-320i-ed-40th-year-edition-12032021115243.jpg"
+];
 
+const days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
 let state = { money: 300000, debt: 0, dayIdx: 0, level: 1, hunger: 20, stress: 10, faith: 50, hasCar: true, alive: true };
 
 function updateUI() {
@@ -83,104 +88,79 @@ function updateUI() {
     document.getElementById("dayTxt").innerText = days[state.dayIdx].substring(0,3);
     document.getElementById("hungerTxt").innerText = state.hunger + "%";
     document.getElementById("faithTxt").innerText = state.faith + "%";
-    document.getElementById("carPhoto").src = carPhotos[Math.min(state.level-1, 2)];
+    
+    // Fotoğraf güncelleme
+    const photoEl = document.getElementById("carPhoto");
+    photoEl.src = carPhotos[Math.min(state.level-1, 2)];
+    
+    document.getElementById("carInfo").innerText = (state.level === 1 ? "Tofaş Şahin" : state.level === 2 ? "Fiat Egea" : "BMW M4") + " | Seviye " + state.level;
     
     let cost = state.level * 1000000;
     document.getElementById("upgradeBtn").innerText = `🏢 Upgrade (₺${cost/1000}k)`;
 }
 
+// ... (Geri kalan tüm fonksiyonlar: loan, nextDay, sellCar, vb. aynı kalacak şekilde optimize edildi) ...
+
 function nextDay() {
-    state.dayIdx++;
-    if(state.dayIdx > 6) state.dayIdx = 0;
-
-    // Günlük Gider ve Faiz
+    state.dayIdx++; if(state.dayIdx > 6) state.dayIdx = 0;
     state.hunger += 15;
-    if(state.debt > 0) {
-        state.debt = Math.floor(state.debt * 1.15); // Günlük %15 faiz!
-        showAlert("Tefeci faizi işledi! Dikkat et.");
-    }
-
-    // PAZAR VERGİSİ
+    if(state.debt > 0) { state.debt = Math.floor(state.debt * 1.15); showAlert("Tefeci faizi işledi!"); }
     if(days[state.dayIdx] === "Pazar") {
         let tax = Math.floor(state.money * 0.2);
-        state.money -= tax;
-        showAlert(`Pazar Vergisi: ₺${tax.toLocaleString()} gitti.`);
+        state.money -= tax; showAlert(`Pazar Vergisi: ₺${tax.toLocaleString()} kesildi.`);
     }
-
-    // TEFECİ KONTROLÜ
-    if(state.debt > state.money + (state.level * 500000)) {
-        gameOver("TEFECİ MEKANI BASTI! Borcun dükkanın değerini aştı. Arabaları alıp seni paketlediler.");
-        return;
-    }
-
-    if(state.hunger >= 100) { state.money -= 20000; state.hunger = 40; showAlert("Açlıktan bayıldın, hastane kilitledi."); }
+    if(state.debt > state.money + (state.level * 500000)) { gameOver("TEFECİ BASTI! Borç dükkanı aştı, her şeyi kaybettin."); return; }
+    if(state.hunger >= 100) { state.money -= 20000; state.hunger = 40; showAlert("Açlıktan bayıldın!"); }
     updateUI();
 }
 
-function loan() {
-    state.debt += 100000;
-    state.money += 100000;
-    showAlert("Tefeciden parayı aldın. Yarın faiz başlar...");
-    updateUI();
-}
-
-function payDebt() {
-    if(state.money >= 50000 && state.debt > 0) {
-        state.money -= 50000;
-        state.debt -= 50000;
-        showAlert("Borcun bir kısmını ödedin.");
-    }
-    updateUI();
-}
-
+function loan() { state.debt += 100000; state.money += 100000; showAlert("Tefeciden 100k aldın."); updateUI(); }
+function payDebt() { if(state.money >= 50000 && state.debt > 0) { state.money -= 50000; state.debt -= 50000; showAlert("Borç ödendi."); } updateUI(); }
 function sellCar() {
     if(!state.hasCar) return;
     let price = state.level * 500000 * (0.7 + Math.random() * 0.6);
-    state.money += Math.floor(price);
-    state.hasCar = false;
+    state.money += Math.floor(price); state.hasCar = false;
     showAlert(`Satıldı: ₺${Math.floor(price).toLocaleString()}`);
     setTimeout(() => { state.hasCar = true; updateUI(); }, 2000);
 }
-
 function action(type) {
     if(type === 'market') { if(state.money >= 1000) { state.money -= 1000; state.hunger = 0; } }
-    else { state.faith = 100; state.stress = 0; }
-    updateUI();
+    else { state.faith = 100; } updateUI();
 }
-
 function upgradeGallery() {
     let cost = state.level * 1000000;
     if(state.money >= cost) { state.money -= cost; state.level++; showAlert("Galeri Seviye Atladı!"); }
     updateUI();
 }
-
 function showAlert(txt) {
     const box = document.getElementById("msg-box");
     document.getElementById("msg-content").innerText = txt;
     box.style.display = "block";
-    setTimeout(() => { if(state.alive) box.style.display = "none"; }, 2000);
+    setTimeout(() => { if(state.alive) box.style.display = "none"; }, 1500);
 }
-
 function gameOver(reason) {
     state.alive = false;
     const box = document.getElementById("msg-box");
-    document.getElementById("msg-content").innerHTML = `<div class="game-over">MEKAN PATLADI</div>${reason}`;
+    document.getElementById("msg-content").innerHTML = `<h2 style="color:red">OYUN BİTTİ</h2>${reason}`;
     document.getElementById("restart-btn").style.display = "block";
     box.style.display = "block";
-    box.style.borderColor = "red";
 }
 
-// 3D Arka Plan
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-scene.add(new THREE.GridHelper(100, 20, 0xff0000, 0x111111));
-camera.position.set(5, 5, 5);
-camera.lookAt(0,0,0);
-function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
-animate();
+// Basit 3D Arka Plan
+try {
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({alpha: true});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+    const grid = new THREE.GridHelper(100, 50, 0x444444, 0x222222);
+    scene.add(grid);
+    camera.position.set(0, 5, 10);
+    camera.lookAt(0,0,0);
+    function animate() { requestAnimationFrame(animate); grid.rotation.y += 0.002; renderer.render(scene, camera); }
+    animate();
+} catch(e) { console.log("3D yüklenemedi ama oyun çalışıyor."); }
+
 updateUI();
 </script>
 </body>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>3D Galeri Tycoon & Sürüş</title>
+<style>
+    body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #000; }
+    
+    /* ARAYÜZ KATMANI */
+    #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; pading: 20px; box-sizing: border-box; }
+    
+    /* ÜST PANEL (İstatistikler) */
+    .top-panel { pointer-events: auto; background: rgba(0,0,0,0.7); padding: 15px; display: flex; gap: 20px; color: white; border-radius: 0 0 15px 15px; align-self: center; margin-top: 0; backdrop-filter: blur(5px); border: 1px solid #444; }
+    .stat-box { text-align: center; min-width: 80px; }
+    .stat-val { font-size: 1.2em; font-weight: bold; display: block; }
+    .stat-label { font-size: 0.8em; color: #aaa; }
+    .bar-bg { width: 100%; height: 5px; background: #333; margin-top: 5px; border-radius: 3px; }
+    .bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+
+    /* ALT PANEL (Kontroller) */
+    .bottom-panel { pointer-events: auto; display: flex; justify-content: space-between; padding: 20px; align-items: flex-end; }
+    
+    .panel-box { background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; color: white; width: 300px; border: 1px solid #444; }
+    button { width: 100%; padding: 10px; margin-top: 5px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; transition: 0.2s; }
+    button:hover { filter: brightness(1.2); transform: scale(1.02); }
+
+    .btn-green { background: #2e7d32; color: white; }
+    .btn-red { background: #c62828; color: white; }
+    .btn-gold { background: #f9a825; color: black; }
+    .btn-blue { background: #1565c0; color: white; }
+
+    /* Sürüş Modu Göstergesi */
+    #drive-info { display: none; position: absolute; top: 20px; right: 20px; color: white; background: rgba(0,0,0,0.5); padding: 10px; pointer-events: none; }
+    
+    /* Mesaj Kutusu */
+    #msg-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); color: white; padding: 20px; border-radius: 10px; text-align: center; display: none; border: 2px solid gold; z-index: 99; }
+</style>
+</head>
+<body>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+
+<div id="ui-layer">
+    
+    <div class="top-panel" id="statsPanel">
+        <div class="stat-box">
+            <span class="stat-val" style="color:#4caf50" id="moneyTxt">₺250,000</span>
+            <span class="stat-label">Nakit</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-val" id="hungerTxt">20%</span>
+            <div class="bar-bg"><div class="bar-fill" id="hungerBar" style="width:20%; background:orange"></div></div>
+            <span class="stat-label">Açlık</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-val" id="stressTxt">10%</span>
+            <div class="bar-bg"><div class="bar-fill" id="stressBar" style="width:10%; background:purple"></div></div>
+            <span class="stat-label">Stres</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-val" id="faithTxt">50%</span>
+            <div class="bar-bg"><div class="bar-fill" id="faithBar" style="width:50%; background:gold"></div></div>
+            <span class="stat-label">İman</span>
+        </div>
+    </div>
+
+    <div id="drive-info">Çıkış için [ESC]<br>Gaz: W / Yön: A-D</div>
+
+    <div class="bottom-panel" id="controlPanel">
+        <div class="panel-box">
+            <h3>👤 Yaşam</h3>
+            <button class="btn-red" onclick="action('market')">🍽️ Markete Git (-₺200)</button>
+            <button class="btn-gold" onclick="action('mosque')">🕌 Camiye Git (Stres Azalt)</button>
+        </div>
+
+        <div id="msg-box"></div>
+
+        <div class="panel-box">
+            <h3>🚗 Galeri: <span id="carName">Tofaş Şahin</span></h3>
+            <p id="carValue" style="color:#aaa">Piyasa Değeri: ₺200,000</p>
+            <button class="btn-blue" onclick="toggleDriveMode()">🏁 Arabayla Tur At</button>
+            <button class="btn-green" onclick="upgradeCar()">⬆️ Yeni Araba Al (Rastgele)</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- OYUN VERİLERİ ---
+const game = {
+    money: 250000,
+    hunger: 20,
+    stress: 10,
+    faith: 50,
+    currentCar: 0, // 0: Tofaş, 1: Fiat, 2: BMW
+    isDriving: false
+};
+
+const cars = [
+    { name: "Tofaş Şahin", price: 200000, color: 0xffffff, speed: 0.5 },
+    { name: "Fiat Egea", price: 800000, color: 0x888888, speed: 0.7 },
+    { name: "BMW 320i", price: 2500000, color: 0x0000ff, speed: 1.0 },
+    { name: "Ferrari", price: 5000000, color: 0xff0000, speed: 1.5 }
+];
+
+// --- THREE.JS KURULUMU ---
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x111111);
+// Sis ekle (Derinlik için)
+scene.fog = new THREE.Fog(0x111111, 10, 40);
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+// Işıklar
+const ambLight = new THREE.AmbientLight(0x404040, 0.8);
+scene.add(ambLight);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+dirLight.position.set(5, 10, 5);
+dirLight.castShadow = true;
+scene.add(dirLight);
+
+// Zemin (Grid)
+const gridHelper = new THREE.GridHelper(100, 100, 0x444444, 0x222222);
+scene.add(gridHelper);
+
+// ARABA (Basit Model)
+const carGroup = new THREE.Group();
+// Gövde
+const bodyGeo = new THREE.BoxGeometry(1.8, 0.7, 4);
+const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2, metalness: 0.5 });
+const body = new THREE.Mesh(bodyGeo, bodyMat);
+body.position.y = 0.6;
+body.castShadow = true;
+carGroup.add(body);
+// Tekerlekler
+const wheelGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.2, 16);
+const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+const wheels = [];
+[[-0.9, 2], [0.9, 2], [-0.9, -2], [0.9, -2]].forEach(pos => {
+    const w = new THREE.Mesh(wheelGeo, wheelMat);
+    w.rotation.z = Math.PI / 2;
+    w.position.set(pos[0], 0.35, pos[1]);
+    carGroup.add(w);
+    wheels.push(w);
+});
+scene.add(carGroup);
+
+// PALMİYELER (Süs)
+for(let i=0; i<30; i++){
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.4,3), new THREE.MeshStandardMaterial({color:0x5d4037}));
+    const leaf = new THREE.Mesh(new THREE.ConeGeometry(1.5,2,6), new THREE.MeshStandardMaterial({color:0x2e7d32}));
+    trunk.position.set((Math.random()-0.5)*80, 1.5, (Math.random()-0.5)*80);
+    // Arabanın yakınına koyma
+    if(Math.abs(trunk.position.x)<5 && Math.abs(trunk.position.z)<5) continue;
+    leaf.position.set(trunk.position.x, 3.5, trunk.position.z);
+    scene.add(trunk); scene.add(leaf);
+}
+
+// --- OYUN MANTIĞI ---
+
+// Kamera Pozisyonları
+const garagePos = { x: 4, y: 3, z: 6 };
+const driveOffset = { x: 0, y: 2, z: 5 };
+
+function updateUI() {
+    document.getElementById("moneyTxt").innerText = "₺" + game.money.toLocaleString();
+    
+    document.getElementById("hungerTxt").innerText = game.hunger + "%";
+    document.getElementById("hungerBar").style.width = game.hunger + "%";
+    
+    document.getElementById("stressTxt").innerText = game.stress + "%";
+    document.getElementById("stressBar").style.width = game.stress + "%";
+    
+    document.getElementById("faithTxt").innerText = game.faith + "%";
+    document.getElementById("faithBar").style.width = game.faith + "%";
+
+    const car = cars[game.currentCar];
+    document.getElementById("carName").innerText = car.name;
+    document.getElementById("carValue").innerText = "Değer: ₺" + car.price.toLocaleString();
+    
+    // Araba Rengini Güncelle
+    body.material.color.setHex(car.color);
+}
+
+function showMsg(txt) {
+    const box = document.getElementById("msg-box");
+    box.innerText = txt;
+    box.style.display = "block";
+    setTimeout(() => { box.style.display = "none"; }, 2000);
+}
+
+function action(type) {
+    if(type === 'market') {
+        if(game.money >= 200) {
+            game.money -= 200;
+            game.hunger = Math.max(0, game.hunger - 30);
+            showMsg("Yemek yedin. Afiyet olsun!");
+        } else showMsg("Paran yok!");
+    }
+    if(type === 'mosque') {
+        game.stress = Math.max(0, game.stress - 40);
+        game.faith = Math.min(100, game.faith + 20);
+        showMsg("Huzur buldun...");
+    }
+    updateUI();
+}
+
+function upgradeCar() {
+    const nextCarIdx = game.currentCar + 1;
+    if(nextCarIdx >= cars.length) {
+        showMsg("Zaten en son model arabadasın!");
+        return;
+    }
+    const nextCar = cars[nextCarIdx];
+    const cost = nextCar.price - cars[game.currentCar].price; // Takas farkı
+    
+    if(game.money >= cost) {
+        game.money -= cost;
+        game.currentCar++;
+        showMsg(nextCar.name + " satın alındı!");
+        updateUI();
+    } else {
+        showMsg("Bu araba için ₺" + cost.toLocaleString() + " lazım!");
+    }
+}
+
+function toggleDriveMode() {
+    game.isDriving = !game.isDriving;
+    
+    const stats = document.getElementById("statsPanel");
+    const controls = document.getElementById("controlPanel");
+    const info = document.getElementById("drive-info");
+    
+    if(game.isDriving) {
+        stats.style.display = "none";
+        controls.style.display = "none";
+        info.style.display = "block";
+        // Kamerayı arkaya al
+    } else {
+        stats.style.display = "flex";
+        controls.style.display = "flex";
+        info.style.display = "none";
+        // Arabayı sıfırla
+        carGroup.position.set(0,0,0);
+        carGroup.rotation.y = 0;
+    }
+}
+
+// KLAVYE
+const keys = {};
+document.addEventListener('keydown', e => {
+    keys[e.key.toLowerCase()] = true;
+    if(e.key === "Escape" && game.isDriving) toggleDriveMode();
+});
+document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+
+// ANIMASYON
+function animate() {
+    requestAnimationFrame(animate);
+
+    if(!game.isDriving) {
+        // GARAJ MODU: Araba kendi etrafında dönsün
+        carGroup.rotation.y += 0.005;
+        
+        // Kamera yumuşak geçiş
+        camera.position.lerp(new THREE.Vector3(garagePos.x, garagePos.y, garagePos.z), 0.05);
+        camera.lookAt(0, 0.5, 0);
+        
+    } else {
+        // SÜRÜŞ MODU
+        const speed = cars[game.currentCar].speed;
+        
+        if(keys['w']) carGroup.translateZ(speed * 0.5);
+        if(keys['s']) carGroup.translateZ(-speed * 0.2);
+        if(keys['a']) carGroup.rotation.y += 0.05;
+        if(keys['d']) carGroup.rotation.y -= 0.05;
+
+        // Kamera arabanın arkasında
+        const relativeOffset = new THREE.Vector3(0, 3, -6);
+        const cameraOffset = relativeOffset.applyMatrix4(carGroup.matrixWorld);
+        
+        camera.position.lerp(cameraOffset, 0.1);
+        camera.lookAt(carGroup.position);
+    }
+
+    renderer.render(scene, camera);
+}
+
+// Pencere Boyutu
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Başlat
+updateUI();
+animate();
+
+</script>
+</body>
+</html>

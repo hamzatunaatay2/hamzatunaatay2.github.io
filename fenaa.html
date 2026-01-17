@@ -2,136 +2,75 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Mini 3D Araba Sürme | Hamza Tuna</title>
+<title>Araba Satma Simülasyonu</title>
 <style>
-body{margin:0;overflow:hidden;background:#0b0b0b;color:white;font-family:sans-serif;}
-#scoreBoard{position:absolute;top:10px;left:10px;font-size:18px;z-index:10;}
+  body {
+    background:#111;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+    margin-top:50px;
+  }
+  input, button {
+    font-size:18px;
+    padding:10px;
+    margin:5px;
+  }
+  .kutu {
+    border:2px solid #444;
+    padding:20px;
+    width:400px;
+    margin:auto;
+  }
 </style>
 </head>
 <body>
-<div id="scoreBoard">Skor: <span id="score">0</span></div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+
+<h1>🚗 Araba Satma Simülasyonu</h1>
+<h2>Bakiyen: 💰 <span id="para">0</span> TL</h2>
+
+<div class="kutu">
+  <p>Arabayı kaça satıyorsun?</p>
+  <input type="number" id="fiyat" placeholder="Fiyat gir">
+  <br>
+  <button onclick="satis()">Satış Yap</button>
+</div>
+
+<p id="sonuc"></p>
+
 <script>
-// SCENE
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x111111);
+let para = 0;
 
-// CAMERA
-const camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);
-camera.position.set(0,5,10);
+function satis() {
+  let fiyat = Number(document.getElementById("fiyat").value);
+  let sonuc = document.getElementById("sonuc");
 
-// RENDERER
-const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(window.innerWidth,window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-// LIGHTS
-const light=new THREE.DirectionalLight(0xffffff,1);
-light.position.set(10,20,10);
-scene.add(light);
-const ambient=new THREE.AmbientLight(0x404040,0.5);
-scene.add(ambient);
-
-// ROAD
-const roadGeometry=new THREE.PlaneGeometry(20,200,1,1);
-const roadMaterial=new THREE.MeshStandardMaterial({color:0x222222});
-const road=new THREE.Mesh(roadGeometry,roadMaterial);
-road.rotation.x=-Math.PI/2;
-road.position.z=0;
-scene.add(road);
-
-// CAR
-const carGeometry=new THREE.BoxGeometry(1,0.5,2);
-const carMaterial=new THREE.MeshStandardMaterial({color:0xff0000});
-const car=new THREE.Mesh(carGeometry,carMaterial);
-car.position.y=0.25;
-scene.add(car);
-
-// PALMİYELER (rastgele)
-const palms=[];
-for(let i=0;i<20;i++){
-  const palmGeo=new THREE.CylinderGeometry(0.1,0.2,2,8);
-  const palmMat=new THREE.MeshStandardMaterial({color:0x228B22});
-  const palm=new THREE.Mesh(palmGeo,palmMat);
-  palm.position.x=(Math.random()<0.5?-1:1)* (Math.random()*8+5);
-  palm.position.y=1;
-  palm.position.z=-i*10;
-  scene.add(palm);
-  palms.push(palm);
-}
-
-// ENEMİ / ENGELLER
-const obstacles=[];
-function spawnObstacle(){
-  const obsGeo=new THREE.BoxGeometry(1,1,1);
-  const obsMat=new THREE.MeshStandardMaterial({color:0xffff00});
-  const obs=new THREE.Mesh(obsGeo,obsMat);
-  obs.position.y=0.5;
-  obs.position.z=-50;
-  obs.position.x=(Math.random()-0.5)*10;
-  scene.add(obs);
-  obstacles.push(obs);
-}
-setInterval(spawnObstacle,2000);
-
-// SCORE
-let score=0;
-const scoreEl=document.getElementById("score");
-
-// INPUT
-const keys={};
-document.addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true;});
-document.addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
-
-// ANIMATION LOOP
-const clock=new THREE.Clock();
-function animate(){
-  requestAnimationFrame(animate);
-  const delta=clock.getDelta();
-  
-  // MOVE CAR
-  if(keys.a||keys.arrowleft) car.position.x-=10*delta;
-  if(keys.d||keys.arrowright) car.position.x+=10*delta;
-  car.position.x=Math.max(-9,Math.min(9,car.position.x));
-  
-  // MOVE ROAD AND PALMS
-  road.position.z+=speed*delta;
-  palms.forEach(p=>p.position.z+=speed*delta);
-  obstacles.forEach(o=>o.position.z+=speed*delta);
-  
-  // REMOVE PASSED OBSTACLES
-  for(let i=obstacles.length-1;i>=0;i--){
-    if(obstacles[i].position.z>10){
-      scene.remove(obstacles[i]);
-      obstacles.splice(i,1);
-      score++;
-      scoreEl.textContent=score;
-    }
-    // COLLISION
-    if(Math.abs(obstacles[i].position.x-car.position.x)<1 && Math.abs(obstacles[i].position.z-car.position.z)<1){
-      alert("GAME OVER! Skor: "+score);
-      location.reload();
-    }
+  if (fiyat <= 0) {
+    sonuc.innerText = "Adam bedava mı alacak aq?";
+    return;
   }
-  
-  // CAMERA FOLLOW
-  camera.position.z=car.position.z+10;
-  camera.position.x=car.position.x;
-  camera.lookAt(car.position);
-  
-  renderer.render(scene,camera);
+
+  let sans = Math.random();
+
+  if (sans < 0.4) {
+    // Kabul
+    para += fiyat;
+    sonuc.innerText = "Müşteri kabul etti! +" + fiyat + " TL 💸";
+  } 
+  else if (sans < 0.8) {
+    // Pazarlık
+    let yeniFiyat = Math.floor(fiyat * (0.7 + Math.random() * 0.2));
+    para += yeniFiyat;
+    sonuc.innerText = "Pazarlık oldu! " + yeniFiyat + " TL'ye sattın 🤝";
+  } 
+  else {
+    // Kaçtı
+    sonuc.innerText = "Müşteri kaçtı ❌";
+  }
+
+  document.getElementById("para").innerText = para;
 }
-
-// GAME SPEED
-let speed=10;
-animate();
-
-// WINDOW RESIZE
-window.addEventListener("resize",()=>{
-  camera.aspect=window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth,window.innerHeight);
-});
 </script>
+
 </body>
 </html>

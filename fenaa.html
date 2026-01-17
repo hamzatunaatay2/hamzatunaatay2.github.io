@@ -2,122 +2,192 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Galeri Sim</title>
+<title>Mini 3D Araba Sürme | Resimli Versiyon</title>
 <style>
-body{margin:0;background:#111;color:#fff;font-family:Arial}
-header{background:#1a1a1a;padding:10px;text-align:center}
-button{padding:6px;border:0;border-radius:6px;cursor:pointer}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,160px);gap:10px;padding:10px}
-.card{background:#222;border-radius:8px;overflow:hidden}
-.card img{width:100%;height:90px;object-fit:cover}
-.c{padding:6px;font-size:14px}
-.buy{background:#2ecc71}
-.sell{background:#e67e22}
-.up{background:#9b59b6}
+    body { margin: 0; overflow: hidden; background: #0b0b0b; color: white; font-family: sans-serif; }
+    #scoreBoard { position: absolute; top: 10px; left: 10px; font-size: 18px; z-index: 10; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 4px; }
+    #info { position: absolute; bottom: 10px; left: 10px; color: gray; font-size: 12px; }
 </style>
 </head>
 <body>
 
-<header>
-<h2 id="galeri">HAMZA GALERİ</h2>
-<div>💰 <b id="para"></b> TL | ⭐ Seviye <b id="lvl"></b></div>
-<button class="up" onclick="upgrade()">Seviye Yükselt</button>
-</header>
+<div id="scoreBoard">Skor: <span id="score">0</span></div>
+<div id="info">Araba resmi yüklenmezse (siyah olursa), "Live Server" kullanın veya internet bağlantınızı kontrol edin.</div>
 
-<h3 style="padding-left:10px">NPC</h3>
-<div id="npc" class="grid"></div>
-
-<h3 style="padding-left:10px">Garaj</h3>
-<div id="garaj" class="grid"></div>
-
+<script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
 <script>
-let para=200000;
-let seviye=1;
-let upFiyat=150000;
+// --- SAHNE KURULUMU ---
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87CEEB); // Gökyüzü mavisi yaptık (daha ferah)
+scene.fog = new THREE.Fog(0x87CEEB, 10, 50); // Ufuk çizgisi için sis efekti
 
-document.getElementById("galeri").onclick=()=>{
-  const ad=prompt("Galeri adı:");
-  if(ad) document.getElementById("galeri").innerText=ad;
-};
+// --- KAMERA ---
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 3, 6);
 
-const arabalar={
-1:[
- {ad:"Tofaş Şahin",f:40000,img:"https://upload.wikimedia.org/wikipedia/commons/6/6a/Tofas_Dogan.jpg"},
- {ad:"Renault 9",f:50000,img:"https://upload.wikimedia.org/wikipedia/commons/1/14/Renault_9.jpg"}
-],
-2:[
- {ad:"Fiat Egea",f:90000,img:"https://upload.wikimedia.org/wikipedia/commons/9/92/Fiat_Egea.jpg"},
- {ad:"Megane",f:110000,img:"https://upload.wikimedia.org/wikipedia/commons/4/4e/Renault_Megane.jpg"}
-],
-3:[
- {ad:"BMW 320i",f:200000,img:"https://upload.wikimedia.org/wikipedia/commons/8/8e/BMW_320i.jpg"}
-]
-};
+// --- RENDERER ---
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true; // Gölgeleri açalım
+document.body.appendChild(renderer.domElement);
 
-let npc=[];
-let garaj=[];
+// --- IŞIKLAR ---
+const light = new THREE.DirectionalLight(0xffffff, 1.2);
+light.position.set(10, 20, 10);
+light.castShadow = true;
+scene.add(light);
+const ambient = new THREE.AmbientLight(0x404040, 0.6);
+scene.add(ambient);
 
-function npcDoldur(){
-  npc=[];
-  let havuz=[];
-  for(let i=1;i<=seviye;i++) havuz=havuz.concat(arabalar[i]||[]);
-  for(let i=0;i<3;i++) npc.push({...havuz[Math.floor(Math.random()*havuz.length)]});
-}
+// --- DOKU YÜKLEYİCİ (FOTOĞRAF İÇİN) ---
+const textureLoader = new THREE.TextureLoader();
 
-function render(){
-document.getElementById("para").innerText=para;
-document.getElementById("lvl").innerText=seviye;
+// --- YOL ---
+const roadGeometry = new THREE.PlaneGeometry(14, 200);
+const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+const road = new THREE.Mesh(roadGeometry, roadMaterial);
+road.rotation.x = -Math.PI / 2;
+road.receiveShadow = true;
+scene.add(road);
 
-npcEl=document.getElementById("npc");
-npcEl.innerHTML="";
-npc.forEach((a,i)=>{
- npcEl.innerHTML+=`
- <div class="card">
- <img src="${a.img}">
- <div class="c">${a.ad}<br>${a.f} TL
- <button class="buy" onclick="al(${i})">Al</button>
- </div></div>`;
+// --- ARABA (FOTOĞRAFLI) ---
+// Not: Aşağıdaki URL'yi kendi araba resminin linkiyle değiştirebilirsin.
+// Kare veya dikdörtgen bir "texture" (doku) görseli en iyi sonucu verir.
+const carTextureUrl = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/crate.gif'; 
+// (Şimdilik örnek olarak ahşap kutu dokusu koydum, araba yan/üst görünüşü bulursan buraya yapıştır)
+
+const carTexture = textureLoader.load(carTextureUrl);
+const carGeometry = new THREE.BoxGeometry(1.5, 0.8, 2.5); // Araba boyutunu biraz büyüttüm
+const carMaterial = new THREE.MeshStandardMaterial({ 
+    map: carTexture, // FOTOĞRAFI BURADA ATIYORUZ
+    color: 0xffffff // Resmin rengini bozmamak için beyaz taban
 });
 
-g=document.getElementById("garaj");
-g.innerHTML="";
-garaj.forEach((a,i)=>{
- g.innerHTML+=`
- <div class="card">
- <img src="${a.img}">
- <div class="c">${a.ad}<br>${Math.floor(a.f*1.3)} TL
- <button class="sell" onclick="sat(${i})">Sat</button>
- </div></div>`;
+const car = new THREE.Mesh(carGeometry, carMaterial);
+car.position.y = 0.4;
+car.castShadow = true; // Gölge düşürsün
+scene.add(car);
+
+// --- PALMİYELER / AĞAÇLAR ---
+const palms = [];
+const trunkMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); // Kahverengi gövde
+const leafMat = new THREE.MeshStandardMaterial({ color: 0x228B22 });  // Yeşil yaprak
+
+for(let i = 0; i < 20; i++){
+  const group = new THREE.Group();
+
+  // Gövde
+  const trunkGeo = new THREE.CylinderGeometry(0.2, 0.3, 2, 8);
+  const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+  trunk.position.y = 1;
+  trunk.castShadow = true;
+  group.add(trunk);
+
+  // Yapraklar (Basit koni)
+  const leavesGeo = new THREE.ConeGeometry(1.2, 2, 8);
+  const leaves = new THREE.Mesh(leavesGeo, leafMat);
+  leaves.position.y = 2.5;
+  group.add(leaves);
+
+  // Konumlandırma
+  group.position.x = (Math.random() < 0.5 ? -1 : 1) * (Math.random() * 5 + 4);
+  group.position.z = -i * 15; // Biraz daha aralıklı
+  
+  scene.add(group);
+  palms.push(group);
+}
+
+// --- ENGELLER ---
+const obstacles = [];
+function spawnObstacle(){
+  const obsGeo = new THREE.BoxGeometry(1, 1, 1);
+  const obsMat = new THREE.MeshStandardMaterial({ color: 0xff0000 }); // Kırmızı engeller
+  const obs = new THREE.Mesh(obsGeo, obsMat);
+  obs.position.y = 0.5;
+  obs.position.z = -60; // Daha uzaktan gelsin
+  obs.position.x = (Math.random() - 0.5) * 10; // Yol genişliğine göre
+  obs.castShadow = true;
+  scene.add(obs);
+  obstacles.push(obs);
+}
+// Engel gelme sıklığı
+setInterval(spawnObstacle, 1500);
+
+// --- OYUN DEĞİŞKENLERİ ---
+let score = 0;
+let gameSpeed = 15; // Hız değişkeni
+const scoreEl = document.getElementById("score");
+
+// --- KLAVYE KONTROLLERİ ---
+const keys = {};
+document.addEventListener("keydown", e => { keys[e.key.toLowerCase()] = true; });
+document.addEventListener("keyup", e => { keys[e.key.toLowerCase()] = false; });
+
+// --- ANİMASYON DÖNGÜSÜ ---
+const clock = new THREE.Clock();
+
+function animate(){
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+  
+  // 1. ARABA HAREKETİ
+  if(keys.a || keys.arrowleft) car.position.x -= 15 * delta;
+  if(keys.d || keys.arrowright) car.position.x += 15 * delta;
+  
+  // Sınırlandırma (Yoldan çıkmasın)
+  car.position.x = Math.max(-6, Math.min(6, car.position.x));
+  
+  // Araba hafif sallanma efekti (motor titremesi gibi)
+  car.rotation.z = (keys.a || keys.arrowleft) ? 0.1 : (keys.d || keys.arrowright) ? -0.1 : 0;
+
+
+  palms.forEach(p => {
+      p.position.z += gameSpeed * delta;
+      if(p.position.z > 10) p.position.z = -200; // Başa sar
+  });
+
+  // Engeller
+  for(let i = obstacles.length - 1; i >= 0; i--){
+    obstacles[i].position.z += gameSpeed * delta;
+
+    // Engel geçti mi?
+    if(obstacles[i].position.z > 10){
+      scene.remove(obstacles[i]);
+      obstacles.splice(i, 1);
+      score++;
+      scoreEl.textContent = score;
+      
+      // Oyun hızlansın
+      if(score % 5 === 0) gameSpeed += 1; 
+    }
+    
+    // ÇARPIŞMA KONTROLÜ
+    // Basit mesafe kontrolü
+    if(obstacles[i]){
+        const distZ = Math.abs(obstacles[i].position.z - car.position.z);
+        const distX = Math.abs(obstacles[i].position.x - car.position.x);
+        
+        if(distZ < 1.5 && distX < 1.2){
+            alert("OYUN BİTTİ! Skorun: " + score);
+            location.reload();
+        }
+    }
+  }
+
+  // 3. KAMERA TAKİBİ (Daha yumuşak)
+  camera.position.x = car.position.x * 0.3; // Hafifçe sağa sola yatsın
+  camera.lookAt(car.position.x, 0, 0); // Arabaya baksın
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
-}
 
-function al(i){
-if(para<npc[i].f) return alert("Para yok");
-para-=npc[i].f;
-garaj.push(npc[i]);
-npc.splice(i,1);
-npcDoldur();
-render();
-}
-
-function sat(i){
-para+=Math.floor(garaj[i].f*1.3);
-garaj.splice(i,1);
-npcDoldur();
-render();
-}
-
-function upgrade(){
-if(para<upFiyat) return alert("Para yok");
-para-=upFiyat;
-seviye++;
-upFiyat=Math.floor(upFiyat*1.7);
-npcDoldur();
-render();
-}
-
-npcDoldur();
-render();
+animate();
 </script>
 </body>
 </html>

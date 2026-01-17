@@ -2,168 +2,121 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Hamza Galeri FULL SIM</title>
+<title>Galeri Sim</title>
 <style>
-body{margin:0;background:#0e0e0e;color:#fff;font-family:Arial}
-header{background:#151515;padding:10px;text-align:center}
-nav button{margin:4px;padding:6px 10px;border:0;border-radius:6px;cursor:pointer}
-.panel{display:none;padding:10px}
-.show{display:block}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
-.card{background:#222;border-radius:10px;overflow:hidden}
-.card img{width:100%;height:120px;object-fit:cover}
-.c{padding:8px}
-button{width:100%;padding:6px;border:0;border-radius:6px;cursor:pointer}
+body{margin:0;background:#111;color:#fff;font-family:Arial}
+header{background:#1a1a1a;padding:10px;text-align:center}
+button{padding:6px;border:0;border-radius:6px;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,160px);gap:10px;padding:10px}
+.card{background:#222;border-radius:8px;overflow:hidden}
+.card img{width:100%;height:90px;object-fit:cover}
+.c{padding:6px;font-size:14px}
 .buy{background:#2ecc71}
 .sell{background:#e67e22}
-.drive{background:#3498db}
-.small{font-size:12px;color:#aaa}
-
-/* sürüş */
-#driveArea{background:#111;height:300px;position:relative}
-#car{width:60px;height:30px;background:red;position:absolute;bottom:20px;left:120px;border-radius:6px}
+.up{background:#9b59b6}
 </style>
 </head>
 <body>
 
 <header>
-<h1 id="galeriAd">Hamza Galeri</h1>
-<div>💰 Para: <b id="para"></b> TL | 📅 Gün: <b id="gun"></b></div>
-<nav>
-<button onclick="show('galeri')">🏪 Galeri</button>
-<button onclick="show('npc')">🧑 NPC</button>
-<button onclick="show('surus')">🚗 Sürüş</button>
-</nav>
+<h2 id="galeri">HAMZA GALERİ</h2>
+<div>💰 <b id="para"></b> TL | ⭐ Seviye <b id="lvl"></b></div>
+<button class="up" onclick="upgrade()">Seviye Yükselt</button>
 </header>
 
-<div id="galeri" class="panel show">
-<h2>Garajın</h2>
+<h3 style="padding-left:10px">NPC</h3>
+<div id="npc" class="grid"></div>
+
+<h3 style="padding-left:10px">Garaj</h3>
 <div id="garaj" class="grid"></div>
-</div>
-
-<div id="npc" class="panel">
-<h2>NPC Alanı</h2>
-<div id="npcList" class="grid"></div>
-</div>
-
-<div id="surus" class="panel">
-<h2>Mini Sürüş</h2>
-<div id="driveArea">
-<div id="car"></div>
-</div>
-<p class="small">← → ile sür</p>
-</div>
 
 <script>
-let para=300000;
-let gunler=["Pzt","Sal","Çrş","Prş","Cuma","Cts","Pazar"];
-let gun=0;
-let garaj=[];
-let seciliAraba=null;
+let para=200000;
+let seviye=1;
+let upFiyat=150000;
 
-const modeller=[
-{ad:"BMW 320i",f:120000,img:"https://images.unsplash.com/photo-1549921296-3c9b4b1f87a2"},
-{ad:"Audi A4",f:130000,img:"https://images.unsplash.com/photo-1542362567-b07e54358753"},
-{ad:"C200",f:150000,img:"https://images.unsplash.com/photo-1541899481282-d53bffe3c35d"},
-{ad:"Golf",f:90000,img:"https://images.unsplash.com/photo-1552519507-da3b142c6e3d"},
-{ad:"Supra",f:200000,img:"https://images.unsplash.com/photo-1549924231-f129b911e442"},
-{ad:"Mustang",f:230000,img:"https://images.unsplash.com/photo-1494976388531-d1058494cdd8"}
-];
-
-let npcCars=[];
-
-function show(id){
-document.querySelectorAll('.panel').forEach(p=>p.classList.remove('show'));
-document.getElementById(id).classList.add('show');
-}
-
-document.getElementById("galeriAd").onclick=()=>{
-const a=prompt("Galeri adı:");
-if(a) document.getElementById("galeriAd").innerText=a;
+document.getElementById("galeri").onclick=()=>{
+  const ad=prompt("Galeri adı:");
+  if(ad) document.getElementById("galeri").innerText=ad;
 };
 
-function yeniNPC(){
-npcCars=[];
-for(let i=0;i<4;i++){
-let m={...modeller[Math.floor(Math.random()*modeller.length)]};
-m.hasar=Math.floor(Math.random()*31);
-npcCars.push(m);
-}
+const arabalar={
+1:[
+ {ad:"Tofaş Şahin",f:40000,img:"https://upload.wikimedia.org/wikipedia/commons/6/6a/Tofas_Dogan.jpg"},
+ {ad:"Renault 9",f:50000,img:"https://upload.wikimedia.org/wikipedia/commons/1/14/Renault_9.jpg"}
+],
+2:[
+ {ad:"Fiat Egea",f:90000,img:"https://upload.wikimedia.org/wikipedia/commons/9/92/Fiat_Egea.jpg"},
+ {ad:"Megane",f:110000,img:"https://upload.wikimedia.org/wikipedia/commons/4/4e/Renault_Megane.jpg"}
+],
+3:[
+ {ad:"BMW 320i",f:200000,img:"https://upload.wikimedia.org/wikipedia/commons/8/8e/BMW_320i.jpg"}
+]
+};
+
+let npc=[];
+let garaj=[];
+
+function npcDoldur(){
+  npc=[];
+  let havuz=[];
+  for(let i=1;i<=seviye;i++) havuz=havuz.concat(arabalar[i]||[]);
+  for(let i=0;i<3;i++) npc.push({...havuz[Math.floor(Math.random()*havuz.length)]});
 }
 
 function render(){
-document.getElementById("para").innerText=para.toLocaleString("tr-TR");
-document.getElementById("gun").innerText=gunler[gun];
+document.getElementById("para").innerText=para;
+document.getElementById("lvl").innerText=seviye;
 
-const g=document.getElementById("garaj");
+npcEl=document.getElementById("npc");
+npcEl.innerHTML="";
+npc.forEach((a,i)=>{
+ npcEl.innerHTML+=`
+ <div class="card">
+ <img src="${a.img}">
+ <div class="c">${a.ad}<br>${a.f} TL
+ <button class="buy" onclick="al(${i})">Al</button>
+ </div></div>`;
+});
+
+g=document.getElementById("garaj");
 g.innerHTML="";
 garaj.forEach((a,i)=>{
-let sat=Math.floor(a.f*(1-a.hasar/100)*1.25);
-g.innerHTML+=`
-<div class="card">
-<img src="${a.img}">
-<div class="c">
-<b>${a.ad}</b>
-<div class="small">Hasar: %${a.hasar}</div>
-<div class="small">Satış: ${sat} TL</div>
-<button class="sell" onclick="sat(${i},${sat})">Sat</button>
-<button class="drive" onclick="sec(${i})">Sür</button>
-</div></div>`;
-});
-
-const n=document.getElementById("npcList");
-n.innerHTML="";
-npcCars.forEach((a,i)=>{
-let fiyat=Math.floor(a.f*(0.9+Math.random()*0.2));
-n.innerHTML+=`
-<div class="card">
-<img src="${a.img}">
-<div class="c">
-<b>${a.ad}</b>
-<div class="small">Hasar: %${a.hasar}</div>
-<div class="small">Fiyat: ${fiyat}</div>
-<button class="buy" onclick="al(${i},${fiyat})">Al</button>
-</div></div>`;
+ g.innerHTML+=`
+ <div class="card">
+ <img src="${a.img}">
+ <div class="c">${a.ad}<br>${Math.floor(a.f*1.3)} TL
+ <button class="sell" onclick="sat(${i})">Sat</button>
+ </div></div>`;
 });
 }
 
-function al(i,f){
-let indirim=Math.random()<0.3 ? 0.9:1;
-f=Math.floor(f*indirim);
-if(para<f){alert("Para yok");return;}
-para-=f;
-garaj.push(npcCars[i]);
-npcCars.splice(i,1);
-if(npcCars.length<2) yeniNPC();
+function al(i){
+if(para<npc[i].f) return alert("Para yok");
+para-=npc[i].f;
+garaj.push(npc[i]);
+npc.splice(i,1);
+npcDoldur();
 render();
 }
 
-function sat(i,f){
-let bonus=Math.random()<0.25 ? 1.1:1;
-para+=Math.floor(f*bonus);
+function sat(i){
+para+=Math.floor(garaj[i].f*1.3);
 garaj.splice(i,1);
-gun=(gun+1)%7;
-if(gunler[gun]=="Pazar"){ alert("💸 Vergi ödedin"); para-=20000;}
-if(Math.random()<0.15) alert("🚓 Polis kontrolü, sorun yok");
+npcDoldur();
 render();
 }
 
-function sec(i){
-seciliAraba=garaj[i];
-show('surus');
+function upgrade(){
+if(para<upFiyat) return alert("Para yok");
+para-=upFiyat;
+seviye++;
+upFiyat=Math.floor(upFiyat*1.7);
+npcDoldur();
+render();
 }
 
-let car=document.getElementById("car");
-let x=120;
-document.addEventListener("keydown",e=>{
-if(!seciliAraba) return;
-if(e.key=="ArrowLeft") x-=10;
-if(e.key=="ArrowRight") x+=10;
-x=Math.max(0,Math.min(240,x));
-car.style.left=x+"px";
-});
-
-yeniNPC();
+npcDoldur();
 render();
 </script>
 </body>

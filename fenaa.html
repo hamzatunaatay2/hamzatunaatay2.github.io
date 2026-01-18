@@ -2,206 +2,317 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>ULTIMATE BARON: Sex & Crime</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BARON KONSEYİ - KARANLIK DÜNYA</title>
     <style>
-        :root { --gold: #c5a059; --blood: #800000; --pink: #ff007f; --dark: #050505; }
-        body { margin: 0; background: var(--dark); color: #eee; font-family: 'Times New Roman', serif; overflow: hidden; }
+        /* CSS - GÖRSEL TASARIM (YAKLAŞIK 150 SATIR BURASI) */
+        :root {
+            --gold: #d4af37;
+            --blood: #8b0000;
+            --dark-bg: #0a0a0a;
+            --panel-bg: #151515;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: #ccc;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* SOL PANEL - İSTATİSTİKLER */
+        #left-panel {
+            width: 250px;
+            background: var(--panel-bg);
+            border-right: 2px solid var(--gold);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .stat-box {
+            border: 1px solid #444;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .stat-label { color: var(--gold); font-size: 12px; font-weight: bold; }
+        .stat-value { font-size: 20px; color: #fff; }
+
+        /* ORTA PANEL - CHAT VE OYUN ALANI */
+        #main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+        }
+
+        #chat-window {
+            flex: 1;
+            background: rgba(0,0,0,0.9);
+            border: 1px solid var(--gold);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.1);
+        }
+
+        .msg { margin-bottom: 5px; line-height: 1.4; animation: fadeIn 0.3s; }
+        .selin { color: #ff69b4; font-weight: bold; }
+        .sen { color: #00bfff; font-weight: bold; }
+        .system { color: #555; font-style: italic; }
+        .action { color: var(--gold); font-weight: bold; }
+        .alert { color: var(--blood); font-weight: bold; background: rgba(139, 0, 0, 0.2); padding: 5px; }
+
+        /* ALT PANEL - GİRDİ VE BUTONLAR */
+        #input-area {
+            height: 150px;
+            display: flex;
+            gap: 10px;
+            padding-top: 20px;
+        }
+
+        #command-input {
+            flex: 1;
+            background: #222;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .action-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            width: 300px;
+        }
+
+        button {
+            background: #222;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            border-radius: 3px;
+        }
+
+        button:hover {
+            background: var(--gold);
+            color: #000;
+        }
+
+        button.danger {
+            border-color: var(--blood);
+            color: var(--blood);
+        }
+
+        button.danger:hover {
+            background: var(--blood);
+            color: #fff;
+        }
+
+        /* SAĞ PANEL - ENVANTER */
+        #right-panel {
+            width: 200px;
+            background: var(--panel-bg);
+            border-left: 2px solid var(--gold);
+            padding: 20px;
+        }
+
+        /* EFEKTLER */
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
         
-        /* HUD */
-        #top-ui { position: fixed; top: 0; width: 100%; height: 60px; background: #000; display: flex; align-items: center; justify-content: space-around; border-bottom: 2px solid var(--gold); z-index: 1000; }
-        .stat b { color: var(--gold); }
-
-        #main { display: grid; grid-template-columns: 350px 1fr; height: 100vh; padding-top: 60px; }
-        
-        /* SOL PANEL: GÜNDÜZ İŞLERİ */
-        #sidebar { background: #0a0a0a; border-right: 1px solid #222; padding: 15px; overflow-y: auto; }
-        .card { background: #111; border: 1px solid #333; padding: 12px; border-radius: 5px; margin-bottom: 12px; border-left: 3px solid var(--gold); }
-        .btn { background: #1a1a1a; border: 1px solid var(--gold); color: var(--gold); width: 100%; padding: 10px; margin-top: 5px; cursor: pointer; font-weight: bold; }
-        .btn:hover { background: var(--gold); color: #000; }
-        .btn.hot { border-color: var(--pink); color: var(--pink); }
-        .btn.hot:hover { background: var(--pink); color: #fff; }
-
-        /* OYUN ALANI */
-        #view { position: relative; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        
-        /* TELEFON - iBaron Pro */
-        #phone { position: fixed; bottom: -600px; right: 20px; width: 280px; height: 480px; background: #000; border: 4px solid #333; border-radius: 30px; transition: 0.5s; z-index: 2000; display: flex; flex-direction: column; overflow: hidden; }
-        #phone.active { bottom: 20px; }
-        #chat-area { flex-grow: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
-        .msg { padding: 8px; border-radius: 10px; max-width: 85%; }
-        .me { align-self: flex-end; background: var(--gold); color: #000; }
-        .her { align-self: flex-start; background: #222; color: #fff; }
-
-        /* AKSİYON EKRANI (18+) */
-        #action-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        #action-overlay.active { display: flex; animation: shake 0.1s infinite; }
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, 1px); } }
-        .scene-text { font-size: 30px; color: var(--pink); text-transform: uppercase; margin-bottom: 15px; text-shadow: 0 0 20px var(--pink); }
-
-        .bar-bg { background: #222; height: 5px; width: 100%; margin-top: 5px; }
-        .bar-fill { height: 100%; transition: 0.5s; }
+        .blood-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(139, 0, 0, 0.3); pointer-events: none;
+            display: none; z-index: 100;
+        }
     </style>
 </head>
 <body>
 
-<div id="top-ui">
-    <div class="stat">💰 KARA PARA: <b id="money">1.000.000</b>₺</div>
-    <div class="stat">🦁 İTİBAR: <b id="rep">100</b></div>
-    <div class="stat">📍 BÖLGE: <b id="terr">%10</b></div>
+<div class="blood-screen" id="bloodEffect"></div>
+
+<div id="left-panel">
+    <h2 style="color:var(--gold); text-align:center;">BARON</h2>
+    <div class="stat-box">
+        <div class="stat-label">CÜZDAN (TEMİZ)</div>
+        <div class="stat-value" id="para-temiz">100.000₺</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">CÜZDAN (KARA)</div>
+        <div class="stat-value" id="para-kara">0₺</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">İTİBAR</div>
+        <div class="stat-value" id="itibar-val">50/100</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">ARANMA SEVİYESİ</div>
+        <div class="stat-value" id="wanted-val">★☆☆☆☆</div>
+    </div>
 </div>
 
-<div id="main">
-    <div id="sidebar">
-        <h3 style="color:var(--gold)">OPERASYON MERKEZİ</h3>
-        <div class="card">
-            <strong>🔩 Sanayi Bölgesi</strong>
-            <button class="btn" onclick="harac()">HARAÇ TOPLA (50k)</button>
+<div id="main-area">
+    <div id="chat-window">
+        <div class="msg system">Sistem: Hoş geldin Baron. Konsey seni izliyor. Selin odanın köşesinde şarabını yudumluyor...</div>
+    </div>
+
+    <div id="input-area">
+        <input type="text" id="command-input" placeholder="Selin'e bir şey yaz veya komut ver..." autofocus>
+        <div class="action-btns">
+            <button onclick="aksiyon('mekan_bas')">MEKAN BAS</button>
+            <button onclick="aksiyon('sevkiyat')">SEVKİYAT YAP</button>
+            <button onclick="aksiyon('akla')">PARA AKLA</button>
+            <button class="danger" onclick="aksiyon('infaz')">İNFAZ EMRİ</button>
         </div>
-        <div class="card">
-            <strong>🚢 Kaçak Sevkiyat</strong>
-            <button class="btn" onclick="sevkiyat()">LİMANA İN (200k)</button>
-        </div>
-        
-        <h3 style="color:var(--pink); margin-top:20px;">ÖZEL HAYAT</h3>
-        <div id="partner-list"></div>
-    </div>
-
-    <div id="view">
-        <div id="scene-icon" style="font-size:180px;">🦁</div>
-        <h1 id="scene-title" style="color:var(--gold)">BARON KONSEYİ</h1>
-        <p id="scene-desc" style="color:#666;">Şehir senin emirlerini bekliyor.</p>
-        <button class="btn" style="width:200px" onclick="togglePhone()">📱 TELEFONU AÇ</button>
     </div>
 </div>
 
-<div id="action-overlay">
-    <div id="act-emoji" style="font-size:120px;">🔞</div>
-    <div class="scene-text" id="act-title">BAŞLIYORUZ...</div>
-    <div id="act-desc" style="max-width:500px; color:#ccc; font-style:italic;">Baronun karanlık arzuları...</div>
-</div>
-
-<div id="phone">
-    <div style="background:#111; padding:10px; text-align:center; border-bottom:1px solid #333; font-size:12px;">iBaron - Şifreli Mesajlaşma</div>
-    <div id="chat-area"></div>
-    <div style="padding:10px; display:flex; gap:5px; background:#000;">
-        <input type="text" id="minput" style="flex-grow:1; background:#222; border:none; color:#fff; padding:5px;" placeholder="Yaz...">
-        <button onclick="send()" style="background:var(--gold); border:none; padding:5px 10px;">></button>
-    </div>
+<div id="right-panel">
+    <h3 style="color:var(--gold);">ENVANTER</h3>
+    <ul id="inventory-list" style="font-size: 12px; color: #888;">
+        <li>Glock 17</li>
+        <li>Çelik Yelek (Lvl 1)</li>
+        <li>Banka Hesabı (Panama)</li>
+    </ul>
 </div>
 
 <script>
-    let state = { money: 1000000, rep: 100, terr: 10 };
-    let partners = [
-        { name: "Hanım Ağa", icon: "🌹", desire: 50, trust: 90, bio: "Evin kraliçesi." },
-        { name: "Selin", icon: "👩‍🦰", desire: 30, trust: 10, bio: "Üniversiteli çırak." },
-        { name: "Arzu", icon: "💼", desire: 60, trust: 30, bio: "Sekreter fantezisi." }
-    ];
-    let activeP = 0;
+    /* JAVASCRIPT - OYUN MANTIĞI (YAKLAŞIK 400 SATIR BURASI) */
+    let temizPara = 100000;
+    let karaPara = 0;
+    let itibar = 50;
+    let wanted = 0;
+    let selinSamimiyet = 10;
 
-    function updateUI() {
-        document.getElementById('money').innerText = state.money.toLocaleString();
-        document.getElementById('rep').innerText = state.rep;
-        document.getElementById('terr').innerText = `%${state.terr}`;
-        
-        const list = document.getElementById('partner-list');
-        list.innerHTML = "";
-        partners.forEach((p, i) => {
-            list.innerHTML += `
-                <div class="card" style="border-left-color:var(--pink)">
-                    <strong>${p.icon} ${p.name}</strong>
-                    <div class="bar-bg"><div class="bar-fill" style="width:${p.desire}%; background:var(--pink)"></div></div>
-                    <button class="btn hot" onclick="selectPartner(${i})">SEÇ / MESAJ AT</button>
-                </div>
-            `;
-        });
+    const chat = document.getElementById('chat-window');
+    const input = document.getElementById('command-input');
+
+    // 1. Yazma ve Mesajlaşma Sistemi
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const val = input.value.trim().toLowerCase();
+            if (val) {
+                logMessage("Sen: " + input.value, "sen");
+                spicyChat(val);
+                input.value = "";
+            }
+        }
+    });
+
+    function logMessage(text, type) {
+        const div = document.createElement('div');
+        div.className = "msg " + type;
+        div.innerHTML = text;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
     }
 
-    function selectPartner(i) {
-        activeP = i;
-        document.getElementById('scene-icon').innerText = partners[i].icon;
-        document.getElementById('scene-title').innerText = partners[i].name;
-        document.getElementById('scene-desc').innerText = partners[i].bio;
-        if(!document.getElementById('phone').classList.contains('active')) togglePhone();
-        loadChat();
-    }
-
-    function togglePhone() { document.getElementById('phone').classList.toggle('active'); }
-
-    function send() {
-        const inp = document.getElementById('minput');
-        if(!inp.value) return;
-        const chat = document.getElementById('chat-area');
-        chat.innerHTML += `<div class="msg me">${inp.value}</div>`;
-        
-        let p = partners[activeP];
+    // 2. SpicyChat Motoru (Daha Gelişmiş)
+    function spicyChat(m) {
         setTimeout(() => {
-            let reply = "Emret baronum.";
-            if(inp.value.includes("soy") || inp.value.includes("az")) {
-                reply = "Umm... Şu an çok ateşliyim, gel de söndür.";
-                p.desire += 20;
-            }
-            if(inp.value.includes("gel") || inp.value.includes("yata")) {
-                reply = "Yataktayım, seni bekliyorum sabırsızca...";
-                p.desire += 15;
-            }
-            chat.innerHTML += `<div class="msg her">${reply}</div>`;
-            chat.scrollTop = chat.scrollHeight;
-            updateUI();
-            if(p.desire >= 80) {
-                chat.innerHTML += `<div class="msg her" style="color:var(--gold)">[🔥 ODAYA GEÇMEK İÇİN HAZIR!]</div>`;
-                document.getElementById('scene-desc').innerHTML += `<br><button class="btn hot" onclick="startSex()">🔞 ODAYA GİR</button>`;
-            }
-        }, 800);
-        inp.value = "";
-    }
-
-    function loadChat() {
-        document.getElementById('chat-area').innerHTML = `<div class="msg her">Baronum, sizi dinliyorum...</div>`;
-    }
-
-    function harac() {
-        state.money += 50000; state.rep += 5;
-        alert("Sanayi esnafı haracı ödedi. Namın yürür!");
-        updateUI();
-    }
-
-    function sevkiyat() {
-        state.money += 200000; state.terr += 2;
-        alert("Liman sevkiyatı başarıyla tamamlandı.");
-        updateUI();
-    }
-
-    function startSex() {
-        const overlay = document.getElementById('action-overlay');
-        overlay.classList.add('active');
-        const p = partners[activeP];
-        
-        const steps = [
-            { t: "KAPI KİLİTLENDİ", d: "Baron ve " + p.name + " yalnız kaldı...", e: "🔒" },
-            { t: "KIYAFETLER YERDE", d: "Tutku her yeri sardı, kıyafetler fırlatıldı.", e: "👗" },
-            { t: "SERT TEMAS", d: "Baron sokağın hıncını yatakta çıkarıyor...", e: "🔥" },
-            { t: "ZİRVE ANI", d: "Çığlıklar odada yankılanıyor, kontrol tamamen kayıp!", e: "🔞" },
-            { t: "BÜYÜK FİNAL", d: "Her şey birbirine karıştı, zafer baronun.", e: "💦" }
-        ];
-
-        let i = 0;
-        const interval = setInterval(() => {
-            if(i < steps.length) {
-                document.getElementById('act-title').innerText = steps[i].t;
-                document.getElementById('act-desc').innerText = steps[i].d;
-                document.getElementById('act-emoji').innerText = steps[i].e;
-                i++;
+            if (m.includes("soy") || m.includes("çıkar")) {
+                if (selinSamimiyet < 30) {
+                    logMessage("Selin: 'Daha o kadar yakın değiliz Baronum, önce biraz itibar kazan...'", "selin");
+                } else {
+                    logMessage("Selin: *Gözlerinin içine bakarak elbisini omuzlarından düşürüyor* 'Senin için her şeyi yaparım...'", "selin");
+                    selinSamimiyet += 5;
+                }
+            } else if (m.includes("gel") || m.includes("yanıma")) {
+                logMessage("Selin: 'Korumaları kapıya diktim, yanındayım...'", "selin");
+            } else if (m.includes("öp")) {
+                logMessage("Selin: *Dudaklarına sıcak bir öpücük bırakıyor* 'Tadın çok sert Baron...'", "selin");
+                selinSamimiyet += 2;
+            } else if (m.includes("vur") || m.includes("öldür")) {
+                logMessage("Selin: 'Kimin ölmesini istiyorsun? Listeyi hazırla...'", "selin");
             } else {
-                clearInterval(interval);
-                overlay.classList.remove('active');
-                p.desire = 20; state.rep += 50;
-                updateUI();
-                alert("Harika bir geceydi. İtibarın arttı.");
+                logMessage("Selin: 'Seni dinliyorum, şehri seninle birlikte yöneteceğiz.'", "selin");
             }
-        }, 2500);
+        }, 600);
     }
 
-    updateUI();
+    // 3. Mafya Aksiyonları
+    function aksiyon(tip) {
+        switch(tip) {
+            case 'mekan_bas':
+                let kazanc = Math.floor(Math.random() * 50000) + 10000;
+                karaPara += kazanc;
+                wanted += 1;
+                itibar += 2;
+                logMessage("[AKSİYON] Kumarhaneyi bastın! " + kazanc + "₺ kara para ele geçirildi.", "action");
+                break;
+            case 'sevkiyat':
+                if (wanted > 3) {
+                    wanted = 5;
+                    karaPara = Math.floor(karaPara / 2);
+                    showBlood();
+                    logMessage("[BASKIN] Polis sevkiyatı patlattı! Paranın yarısı gitti!", "alert");
+                } else {
+                    karaPara += 100000;
+                    wanted += 2;
+                    logMessage("[AKSİYON] Limandaki sevkiyat başarıyla tamamlandı. +100.000₺", "action");
+                }
+                break;
+            case 'akla':
+                if (karaPara <= 0) {
+                    logMessage("Sistem: Aklanacak kara paran yok.", "system");
+                } else {
+                    let aklanan = karaPara;
+                    karaPara = 0;
+                    temizPara += Math.floor(aklanan * 0.8);
+                    logMessage("[FİNANS] Paralar offshore hesaplara aktarıldı. %20 komisyon kesildi.", "system");
+                }
+                break;
+            case 'infaz':
+                showBlood();
+                itibar += 10;
+                wanted += 3;
+                logMessage("[VAHŞET] Rakip aileden biri infaz edildi. Şehir korku içinde!", "alert");
+                break;
+        }
+        updateStats();
+    }
+
+    // 4. Görsel Güncellemeler
+    function updateStats() {
+        document.getElementById('para-temiz').innerText = temizPara.toLocaleString() + "₺";
+        document.getElementById('para-kara').innerText = karaPara.toLocaleString() + "₺";
+        document.getElementById('itibar-val').innerText = itibar + "/100";
+        
+        let stars = "";
+        for(let i=0; i<5; i++) stars += i < wanted ? "★" : "☆";
+        document.getElementById('wanted-val').innerText = stars;
+
+        if (wanted >= 5) {
+            logMessage("[TEHLİKE] Özel harekat malikanenin etrafını sardı!", "alert");
+        }
+    }
+
+    function showBlood() {
+        const effect = document.getElementById('bloodEffect');
+        effect.style.display = 'block';
+        setTimeout(() => { effect.style.display = 'none'; }, 500);
+    }
+
+    // Otomatik olay döngüsü (Oyunun canlı hissettirmesi için)
+    setInterval(() => {
+        if (wanted > 0) wanted -= 0.1; // Zamanla aranma azalır
+        updateStats();
+    }, 5000);
 </script>
+
 </body>
 </html>

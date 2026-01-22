@@ -3,245 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REİS GALERİCİLİK: SANAYİ KAOS</title>
+    <title>REİS GALERİCİLİK: BARON VE BORSA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --main: #e67e22; --bg: #0b0f19; --card: #161b28; --text: #e2e8f0; --danger: #e74c3c; }
+        :root { --main: #c0392b; --bg: #05070a; --card: #111827; --text: #f3f4f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; overflow: hidden; }
-        .grid { display: grid; grid-template-columns: 400px 1fr 380px; gap: 15px; height: 98vh; }
-        .panel { background: var(--card); border-radius: 12px; padding: 15px; border: 1px solid #2d3748; display: flex; flex-direction: column; overflow: hidden; }
+        .grid { display: grid; grid-template-columns: 380px 1fr 380px; gap: 15px; height: 98vh; }
+        .panel { background: var(--card); border-radius: 12px; padding: 15px; border: 1px solid #1f2937; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* AI CHAT AREA */
-        .ai-chat { flex: 1; overflow-y: auto; background: #05070a; border-radius: 10px; padding: 12px; font-family: 'Courier New', monospace; font-size: 0.85rem; border: 1px solid #2d3748; }
-        .chat-msg { margin-bottom: 12px; padding-bottom: 5px; border-bottom: 1px solid #111; }
-        .bot-name { color: #f39c12; font-weight: bold; }
-        .user-name { color: #3498db; font-weight: bold; }
-        .chat-input-area { display: flex; gap: 8px; margin-top: 10px; }
-        #user-msg { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #2d3748; background: #0b0f19; color: white; }
+        /* BARON STATS */
+        .baron-stats { display: flex; justify-content: space-around; background: #1f2937; padding: 12px; border-radius: 10px; border-bottom: 4px solid var(--main); margin-bottom: 10px; }
+        .wanted { color: #e74c3c; font-weight: bold; animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-        /* PAZARLIK MODALI */
-        #pazarlik-panel { display: none; background: #1f2937; padding: 15px; border-radius: 10px; border: 2px solid var(--main); margin-bottom: 15px; }
-
-        /* CAR CARDS */
-        .car-card { background: #1f2937; padding: 15px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #374151; }
-        .price { color: #10b981; font-weight: bold; font-size: 1.2rem; }
-        .btn { border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-buy { background: #10b981; color: white; width: 100%; }
+        /* BORSA AREA */
+        .stock-item { background: #0b0f19; padding: 8px; margin-bottom: 5px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #27ae60; }
         
-        .header-stats { display: flex; justify-content: space-around; background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; border-bottom: 3px solid var(--main); }
-        .stat-val { font-weight: bold; color: var(--main); }
+        /* CHAT */
+        .ai-chat { flex: 1; overflow-y: auto; background: #000; padding: 10px; font-family: 'Consolas', monospace; font-size: 0.8rem; border: 1px solid #374151; }
+        .bot-msg { margin-bottom: 8px; border-left: 2px solid #555; padding-left: 5px; }
+
+        /* BUTTONS */
+        .btn { border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; }
+        .btn-shoot { background: #c0392b; font-size: 0.7rem; }
+        .btn-buy { background: #27ae60; width: 100%; }
+        
+        .car-card { background: #1f2937; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #374151; }
+        .price { color: #2ecc71; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="header-stats">
-    <div>💰 PARA: <span id="m-money" class="stat-val">750.000</span> TL</div>
-    <div>💎 İTİBAR: <span id="m-rep" class="stat-val">10</span></div>
-    <div>🏢 GARAJ: <span id="m-garage" class="stat-val">0/6</span></div>
+<div class="baron-stats">
+    <div>💰 PARA: <span id="m-money" style="color:#2ecc71">750.000</span> TL</div>
+    <div>👑 İTİBAR: <span id="m-rep" style="color:#f1c40f">0</span></div>
+    <div>🚨 ARANMA: <span id="m-wanted" class="wanted">Sakin</span></div>
 </div>
 
 <div class="grid">
     <div class="panel">
-        <h2><i class="fas fa-comments"></i> SANAYİ WHATSAPP GRUBU</h2>
+        <h2 style="color:#2ecc71"><i class="fas fa-chart-line"></i> BORS-A (SANAYİ ENDEKS)</h2>
+        <div id="stock-market"></div>
+        <hr>
+        <h2><i class="fas fa-skull"></i> SANAYİ RACON CHAT</h2>
         <div class="ai-chat" id="chat-box"></div>
-        <div class="chat-input-area">
-            <input type="text" id="user-msg" placeholder="Mesaj yaz ya da pazarlık yap..." onkeypress="if(event.key==='Enter') sendMessage()">
-            <button class="btn" onclick="sendMessage()" style="background:var(--main); color:white;">Yolla</button>
+        <div style="display:flex; gap:5px; margin-top:5px;">
+            <input type="text" id="user-msg" placeholder="Raconunu kes aq..." style="flex:1; background:#000; color:white; border:1px solid #334155; padding:8px;" onkeypress="if(event.key==='Enter') sendMessage()">
+            <button class="btn" onclick="sendMessage()" style="background:var(--main)">Yolla</button>
         </div>
     </div>
 
     <div class="panel" style="overflow-y: auto;">
-        <div id="pazarlik-panel">
-            <h3 id="pazarlik-title">Pazarlık: Tofaş Şahin</h3>
-            <p>Satıcı: <span id="pazarlik-satici" class="bot-name"></span></p>
-            <p>İstenen: <span id="pazarlik-fiyat" style="font-weight:bold;"></span> TL</p>
-            <input type="number" id="pazarlik-teklif" placeholder="Teklifin nedir aq?" style="width:100%; padding:10px; margin-bottom:10px;">
-            <div style="display:flex; gap:10px;">
-                <button class="btn" onclick="pazarlikYap()" style="background:#27ae60; flex:1; color:white;">Teklif Ver</button>
-                <button class="btn" onclick="pazarlikIptal()" style="background:#c0392b; flex:1; color:white;">Vazgeç</button>
-            </div>
-        </div>
-
-        <h2><i class="fas fa-shopping-basket"></i> İKİNCİ EL PİYASASI</h2>
-        <button class="btn" onclick="refreshMarket()" style="background:#3b82f6; width:100%; margin-bottom:15px; color:white;">PİYASAYI YENİLE</button>
+        <h2><i class="fas fa-car"></i> GALERİ VE PAZARLIK</h2>
         <div id="market-list"></div>
-        
-        <hr style="border:1px solid #334155; margin:20px 0;">
+        <hr>
         <h2><i class="fas fa-warehouse"></i> GARAJIM</h2>
         <div id="garage-list"></div>
     </div>
 
     <div class="panel">
-        <h2><i class="fas fa-landmark"></i> BANKA</h2>
-        <button class="btn" onclick="takeLoan()" style="background:#8e44ad; color:white; width:100%;">KREDİ ÇEK (1.000.000 TL)</button>
-        <p id="loan-info" style="font-size:0.8rem; color:var(--danger); text-align:center;">Borç: 0 TL</p>
+        <h2><i class="fas fa-users"></i> HEDEFTEKİLER</h2>
+        <div id="bot-list"></div>
         
-        <h2 style="margin-top:30px;"><i class="fas fa-users-cog"></i> AKTİF GALERİCİLER</h2>
-        <div id="bot-status-list" style="font-size:0.85rem;"></div>
+        <div style="margin-top:auto; background:#c0392b33; padding:15px; border-radius:10px; border:1px solid var(--main);">
+            <h3>🏢 BARON OPERASYONU</h3>
+            <p style="font-size:0.8rem;">İtibarın arttıkça vergi ödemezsin, ama polis baskınına hazır ol!</p>
+            <button class="btn" style="background:#000; width:100%;" onclick="saveGame()">LOCAL KAYIT AL</button>
+        </div>
     </div>
 </div>
 
 <script>
-let state = { money: 750000, rep: 10, garage: [], loan: 0, usd: 31.50 };
-const bots = [
-    { name: "Gölcüklü_Apo", mood: "Asabi", bio: "Tofaşçı" },
-    { name: "Mercedes_Hüseyin", mood: "Keyifli", bio: "Galerici" },
-    { name: "Kaportacı_Fiko", mood: "Normal", bio: "Usta" },
-    { name: "Zengin_Mert", mood: "Kibirli", bio: "Züppe" }
+let state = { money: 750000, rep: 0, wanted: 0, garage: [], stocks: { reisGyo: 0, sanayiAs: 0 } };
+let stockPrices = { reisGyo: 150, sanayiAs: 450 };
+const botPool = [
+    { name: "Çakal Nuri", money: 500000, alive: true },
+    { name: "Sülün Osman", money: 1200000, alive: true },
+    { name: "Kel Mahmut", money: 200000, alive: true },
+    { name: "Baron Erol", money: 5000000, alive: true }
 ];
 
-let aktifPazarlik = null;
-
 function init() {
+    renderStocks();
+    renderBots();
+    setInterval(updatePrices, 4000);
+    setInterval(botBanter, 7000);
+    setInterval(policeCheck, 15000);
     refreshMarket();
-    setInterval(botKendiArasindaKonus, 8000);
-    setInterval(() => { state.usd += (Math.random()*0.1 - 0.05); updateUI(); }, 5000);
     updateUI();
-    addChatMsg("SİSTEM", "Sanayi grubu açıldı. Küfür serbest ama dozu kaçırma aq.", "system-msg");
+    addChatMsg("SİSTEM", "Piyasaya girildi. Raconun kadar yaşarsın aq.", "color:#95a5a6");
 }
 
-// --- AKILLI CHAT VE PAZARLIK ---
+// --- BORSA SİSTEMİ ---
+function updatePrices() {
+    stockPrices.reisGyo += (Math.random()*10 - 5);
+    stockPrices.sanayiAs += (Math.random()*30 - 15);
+    renderStocks();
+    updateUI();
+}
+
+function tradeStock(name, type) {
+    let price = Math.floor(stockPrices[name]);
+    if(type === 'buy' && state.money >= price) {
+        state.money -= price;
+        state.stocks[name]++;
+    } else if(type === 'sell' && state.stocks[name] > 0) {
+        state.money += price;
+        state.stocks[name]--;
+    }
+    updateUI();
+}
+
+// --- ADAM VURMA MEKANİĞİ ---
+function shootBot(idx) {
+    const bot = botPool[idx];
+    if(!bot.alive) return;
+
+    let success = Math.random() > 0.3;
+    if(success) {
+        let loot = Math.floor(bot.money * 0.2);
+        state.money += loot;
+        state.rep += 50;
+        state.wanted += 20;
+        bot.alive = false;
+        addChatMsg("SİSTEM", `${bot.name} paketlendi! Leşten ${loot.toLocaleString()} TL çıktı.`, "color:#e74c3c; font-weight:bold;");
+    } else {
+        state.wanted += 10;
+        addChatMsg(bot.name, "Iska geçtin aq evladı! Polisi arıyorum!", "color:#e67e22");
+    }
+    renderBots();
+    updateUI();
+}
+
+function policeCheck() {
+    if(state.wanted > 50) {
+        if(Math.random() * 100 < state.wanted) {
+            alert("🚨 POLİS BASKINI! Bütün mallarına el konuldu!");
+            state.money = Math.floor(state.money / 2);
+            state.wanted = 0;
+            state.rep = 0;
+            updateUI();
+        }
+    }
+    if(state.wanted > 0) state.wanted -= 2;
+}
+
+// --- CHAT VE UI ---
+function botBanter() {
+    const aliveBots = botPool.filter(b => b.alive);
+    if(aliveBots.length === 0) return;
+    const bot = aliveBots[Math.floor(Math.random()*aliveBots.length)];
+    const msgs = ["Dolar artıyor, Reis GYO hissesi alın!", "Kim lan o sanayide ateş eden?", "Galericilik bitti artık baronluk devri başladı.", "Hüseyin'i paketlemişler diyolar, doğru mu aq?"];
+    addChatMsg(bot.name, msgs[Math.floor(Math.random()*msgs.length)], "color:#3498db");
+}
+
 function sendMessage() {
     const input = document.getElementById("user-msg");
-    const msg = input.value.trim();
+    const msg = input.value;
     if(!msg) return;
-
-    addChatMsg("SEN", msg, "user-name");
+    addChatMsg("SEN (BARON)", msg, "color:#f1c40f");
     input.value = "";
-
+    
     setTimeout(() => {
-        const bot = bots[Math.floor(Math.random()*bots.length)];
-        let reply = "";
-        
-        if(msg.toLowerCase().includes("selam")) reply = "As Reis, hayırlı işler.";
-        else if(msg.toLowerCase().includes("fiyat")) reply = "Piyasa çok karışık aq, kimse önünü göremiyor.";
-        else if(msg.toLowerCase().includes("dolar")) reply = "Dolar fırlarsa sanayide dükkanı kapatırız.";
-        else reply = "Neden bahsediyon aq, işine bak piyasayı bulandırma.";
-
-        addChatMsg(bot.name, reply, "bot-name");
-    }, 800);
+        const aliveBots = botPool.filter(b => b.alive);
+        if(aliveBots.length > 0) {
+            addChatMsg(aliveBots[0].name, "Racon kesme aq, icraat yap görelim.", "color:#3498db");
+        }
+    }, 1000);
 }
 
-function botKendiArasindaKonus() {
-    const bot1 = bots[Math.floor(Math.random()*bots.length)];
-    const bot2 = bots.filter(b => b.name !== bot1.name)[Math.floor(Math.random()*(bots.length-1))];
-    
-    const diyaloglar = [
-        ["Lan Hüseyin, o kazalı BMW'yi kime kilitledin aq?", "Sana ne lan, alan memnun satan memnun!"],
-        ["Beyler dolar fırlıyor, araba satmayın bekleyin.", "Biz taş mı yicez aq, mecburi satıyoruz."],
-        ["Gölcük sanayi bugün çok durgun ya.", "Herkes Bitcoin peşinde koşuyor, galerici mi kaldı?"],
-        ["Geçen bi' müşteri geldi 100 bin altına istiyor, söve söve kovdum.", "İyi yapmışsın Reis, ölücülere yer yok."]
-    ];
-    
-    const secilen = diyaloglar[Math.floor(Math.random()*diyaloglar.length)];
-    addChatMsg(bot1.name, secilen[0], "bot-name");
-    setTimeout(() => addChatMsg(bot2.name, secilen[1], "bot-name"), 2000);
-}
-
-function addChatMsg(user, text, className) {
+function addChatMsg(user, text, style) {
     const box = document.getElementById("chat-box");
-    box.innerHTML += `<div class="chat-msg"><span class="${className}">${user}:</span> ${text}</div>`;
+    box.innerHTML += `<div class="bot-msg" style="${style}"><b>${user}:</b> ${text}</div>`;
     box.scrollTop = box.scrollHeight;
 }
 
-// --- PAZARLIK SİSTEMİ ---
-function pazarlikBaslat(id) {
-    const item = marketItems.find(x => x.id === id);
-    const bot = bots[Math.floor(Math.random()*bots.length)];
-    aktifPazarlik = { ...item, satici: bot };
-    
-    document.getElementById("pazarlik-panel").style.display = "block";
-    document.getElementById("pazarlik-title").innerText = "Pazarlık: " + item.name;
-    document.getElementById("pazarlik-satici").innerText = bot.name;
-    document.getElementById("pazarlik-fiyat").innerText = item.price.toLocaleString();
-    addChatMsg(bot.name, `Gel gel, ${item.name} için bir orta yol buluruz.`, "bot-name");
+// --- RENDERLAR ---
+function renderStocks() {
+    document.getElementById("stock-market").innerHTML = `
+        <div class="stock-item"><span>REİS GYO: ${Math.floor(stockPrices.reisGyo)} TL</span> 
+            <div><button class="btn" style="background:green" onclick="tradeStock('reisGyo','buy')">AL</button>
+            <button class="btn" style="background:red" onclick="tradeStock('reisGyo','sell')">SAT</button></div>
+        </div>
+        <div class="stock-item"><span>SANAYİ A.Ş: ${Math.floor(stockPrices.sanayiAs)} TL</span> 
+            <div><button class="btn" style="background:green" onclick="tradeStock('sanayiAs','buy')">AL</button>
+            <button class="btn" style="background:red" onclick="tradeStock('sanayiAs','sell')">SAT</button></div>
+        </div>
+        <div style="font-size:0.7rem; padding:5px;">Portföy: ${state.stocks.reisGyo} GYO / ${state.stocks.sanayiAs} SANAYİ</div>
+    `;
 }
 
-function pazarlikYap() {
-    const teklif = parseInt(document.getElementById("pazarlik-teklif").value);
-    if(!teklif || teklif <= 0) return;
-
-    const bot = aktifPazarlik.satici;
-    const asilFiyat = aktifPazarlik.price;
-
-    if(teklif >= asilFiyat * 0.95) {
-        addChatMsg(bot.name, "Tamam lan, kırmıyorum seni. Hayırlı olsun aq.", "bot-name");
-        satinAl(teklif);
-    } else if (teklif >= asilFiyat * 0.85) {
-        if(Math.random() > 0.5) {
-            addChatMsg(bot.name, "Biraz daha çıkarsan el sıkışırız bak.", "bot-name");
-        } else {
-            addChatMsg(bot.name, "Lan bizi mi koparıyon? Az daha çık bari.", "bot-name");
-        }
-    } else {
-        addChatMsg(bot.name, "Siktir git başka kapıya, bu paraya lastiğini vermem!", "bot-name");
-        pazarlikIptal();
-    }
+function renderBots() {
+    document.getElementById("bot-list").innerHTML = botPool.map((b, i) => `
+        <div class="stock-item" style="border-left-color:${b.alive ? '#c0392b' : '#333'}">
+            <span>${b.alive ? '👤' : '💀'} ${b.name}</span>
+            ${b.alive ? `<button class="btn btn-shoot" onclick="shootBot(${i})">PAKETLE 🔫</button>` : '<span>MEFTA</span>'}
+        </div>
+    `).join('');
 }
 
-function satinAl(fiyat) {
-    if(state.money >= fiyat && state.garage.length < 6) {
-        state.money -= fiyat;
-        state.garage.push({ name: aktifPazarlik.name, price: fiyat });
-        marketItems = marketItems.filter(x => x.id !== aktifPazarlik.id);
-        pazarlikIptal();
-        updateUI();
-    }
-}
-
-function pazarlikIptal() {
-    document.getElementById("pazarlik-panel").style.display = "none";
-    aktifPazarlik = null;
-}
-
-// --- EKONOMİ VE PİYASA ---
-let marketItems = [];
 function refreshMarket() {
-    state.money -= 2000;
-    const arabalar = [{n:"Tofaş Şahin", p:250000}, {n:"VW Passat", p:1800000}, {n:"TOGG T10X", p:2200000}, {n:"BMW M5", p:9000000}];
-    marketItems = Array.from({length:3}, () => {
-        const r = arabalar[Math.floor(Math.random()*arabalar.length)];
-        return { id: Math.random(), name: r.n, price: Math.floor(r.p * (0.8 + Math.random()*0.4)) };
-    });
-    updateUI();
+    const cars = [{n:"Tofaş", p:250000}, {n:"Passat", p:1800000}, {n:"S600", p:12000000}];
+    document.getElementById("market-list").innerHTML = Array.from({length:2}, () => {
+        const c = cars[Math.floor(Math.random()*cars.length)];
+        const price = Math.floor(c.p * (0.8 + Math.random()*0.4));
+        return `<div class="car-card"><b>${c.n}</b> - <span class="price">${price.toLocaleString()} TL</span><br>
+        <button class="btn btn-buy" style="margin-top:5px;" onclick="buyCar('${c.n}', ${price})">HESAPSIZ AL</button></div>`;
+    }).join('');
 }
+
+function buyCar(n, p) { if(state.money >= p) { state.money -= p; state.garage.push({n,p}); updateUI(); } }
 
 function updateUI() {
     document.getElementById("m-money").innerText = Math.floor(state.money).toLocaleString();
     document.getElementById("m-rep").innerText = state.rep;
-    document.getElementById("m-garage").innerText = `${state.garage.length}/6`;
-    document.getElementById("loan-info").innerText = "Borç: " + state.loan.toLocaleString() + " TL";
-
-    document.getElementById("market-list").innerHTML = marketItems.map(c => `
-        <div class="car-card">
-            <b>${c.name}</b><br><span class="price">${c.price.toLocaleString()} TL</span>
-            <button class="btn btn-buy" onclick="pazarlikBaslat(${c.id})" style="margin-top:10px;">PAZARLIK YAP / AL</button>
-        </div>
-    `).join('');
-
+    document.getElementById("m-wanted").innerText = state.wanted > 70 ? "🔥 ARANIYOR" : (state.wanted > 20 ? "⚠️ TAKİPTE" : "Sakin");
+    document.getElementById("m-garage").innerText = state.garage.length + " / 6";
+    
     document.getElementById("garage-list").innerHTML = state.garage.map((c, i) => `
-        <div class="car-card" style="border-left:5px solid var(--main)">
-            <b>${c.name}</b><br>Maliyet: ${c.price.toLocaleString()}
-            <button class="btn" onclick="sellCar(${i})" style="background:var(--main); color:white; width:100%; margin-top:5px;">SAT</button>
-        </div>
-    `).join('');
-
-    document.getElementById("bot-status-list").innerHTML = bots.map(b => `
-        <div style="margin-bottom:5px;">👤 ${b.name} - <span style="color:#f1c40f">${b.mood}</span></div>
+        <div class="car-card" style="border-left:4px solid gold"><b>${c.n}</b> - <button class="btn" style="background:#f39c12; font-size:0.6rem" onclick="sellCar(${i})">SAT</button></div>
     `).join('');
 }
 
 function sellCar(idx) {
-    const offer = Math.floor(state.garage[idx].price * (0.9 + Math.random()*0.6));
-    if(confirm(`${offer.toLocaleString()} TL veriyorlar aq. Satalım mı?`)) {
-        state.money += offer;
-        state.rep += 5;
-        state.garage.splice(idx, 1);
-        updateUI();
-    }
+    state.money += Math.floor(state.garage[idx].p * 1.2);
+    state.garage.splice(idx, 1);
+    updateUI();
 }
 
-function takeLoan() { if(state.loan == 0) { state.loan = 1000000; state.money += 1000000; updateUI(); } }
+function saveGame() { localStorage.setItem('baron_save', JSON.stringify(state)); alert("Kayıt Başarılı Baron!"); }
 
 init();
 </script>

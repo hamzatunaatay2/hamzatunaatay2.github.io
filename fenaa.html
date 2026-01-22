@@ -2,23 +2,27 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Kral Galericilik Simülatörü</title>
+<title>Yerli ve Milli Galericilik - TOGG Edition</title>
 <style>
 body{
     background:#1a1a1a;
     color:#fff;
-    font-family:Segoe UI;
+    font-family:Segoe UI, sans-serif;
     padding:20px;
-    text-align:center
+    text-align:center;
+    user-select: none;
 }
-h1{color:#f1c40f}
+h1{color:#1abc9c; text-shadow: 2px 2px #000;}
 .stats{
     display:flex;
     justify-content:space-around;
-    background:#333;
+    background:#34495e;
     padding:15px;
     border-radius:10px;
-    margin-bottom:15px
+    margin-bottom:15px;
+    border: 2px solid #1abc9c;
+    font-weight: bold;
+    font-size: 1.1em;
 }
 .container{
     display:flex;
@@ -31,41 +35,55 @@ h1{color:#f1c40f}
     padding:15px;
     border-radius:10px;
     width:45%;
-    min-width:300px
+    min-width:300px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
 }
 .car{
     background:#ecf0f1;
-    color:#000;
+    color:#2c3e50;
     padding:10px;
     border-radius:6px;
-    margin-bottom:8px
+    margin-bottom:8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 5px solid #bdc3c7;
 }
+.car.togg { border-left: 5px solid #1abc9c; background: #e8f8f5; }
+.car.makam { border-left: 5px solid #e74c3c; background: #fadbd8; font-weight: bold; }
+
 button{
-    padding:6px 12px;
+    padding:8px 15px;
     border:none;
     border-radius:5px;
     font-weight:bold;
     cursor:pointer;
-    margin:3px
+    margin-left: 5px;
+    transition: 0.2s;
 }
-.buy{background:#2ecc71}
-.sell{background:#e67e22}
-.exp{background:#3498db;color:#fff}
+button:hover { transform: scale(1.05); }
+.buy{background:#27ae60; color:white}
+.sell{background:#d35400; color:white}
+.exp{background:#2980b9;color:#fff}
+.refresh-btn { width: 100%; background: #8e44ad; color: white; margin-top: 10px; padding: 10px; }
+
 #log{
     background:#000;
     color:#0f0;
-    height:120px;
+    height:150px;
     overflow:auto;
     margin-top:15px;
     padding:10px;
-    font-family:monospace
+    font-family:monospace;
+    border: 1px solid #333;
+    text-align: left;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🚗 KRAL GALERİCİLİK 🚗</h1>
+<h1>🇹🇷 YERLİ VE MİLLİ GALERİCİLİK 🇹🇷</h1>
 
 <div class="stats">
     <span id="money"></span>
@@ -77,20 +95,20 @@ button{
     <div class="panel">
         <h3>📢 PİYASA</h3>
         <div id="market"></div>
-        <button onclick="refresh()">🔄 Yenile (1.000 TL)</button>
+        <button class="refresh-btn" onclick="refresh()">🔄 Piyasayı Yenile (1.000 TL)</button>
     </div>
 
     <div class="panel">
-        <h3>🏠 GARAJ</h3>
+        <h3>🏠 GARAJIM</h3>
         <div id="garage"></div>
     </div>
 </div>
 
-<div id="log">Sisteme hoş geldin galerici...</div>
+<div id="log">Sisteme hoş geldin. Togg siparişleri açık...</div>
 
 <script>
 // ==== OYUN DEĞİŞKENLERİ ====
-let money = 500000;
+let money = 750000; // Başlangıç parası biraz arttı
 let rep = 10;
 let lvl = 1;
 let xp = 0;
@@ -98,55 +116,55 @@ let garage = [];
 let market = [];
 let cheatUsed = false;
 
-// ==== ARAÇ VERİTABANI VE OLUŞTURUCU ====
+// ==== ARAÇ VERİTABANI ====
 const carDatabase = [
-    { b: "Tofaş", m: ["Şahin", "Doğan SLX", "Kartal", "Serçe"], p: 250000 },
-    { b: "BMW", m: ["3.20i", "5.20d", "M3", "M4", "7.40", "X5", "i8"], p: 2500000 },
-    { b: "Mercedes", m: ["C180", "E250", "S400", "G63 AMG", "CLA 200", "Vito"], p: 2800000 },
-    { b: "Audi", m: ["A3", "A4", "A6", "Q7", "RS6", "R8"], p: 2600000 },
-    { b: "VW", m: ["Passat", "Golf", "Polo", "Arteon", "Tiguan", "Caddy"], p: 1400000 },
-    { b: "Fiat", m: ["Egea", "Linea", "Doblo", "Fiorino", "Freemont"], p: 700000 },
-    { b: "Renault", m: ["Clio", "Megane", "Symbol", "Taliant", "Kadjar"], p: 800000 },
-    { b: "Honda", m: ["Civic", "City", "Accord", "CR-V", "Jazz", "S2000"], p: 1100000 },
-    { b: "Toyota", m: ["Corolla", "Yaris", "Camry", "C-HR", "RAV4", "Supra"], p: 1200000 },
-    { b: "Ford", m: ["Focus", "Fiesta", "Mondeo", "Kuga", "Ranger", "Mustang"], p: 1300000 },
-    { b: "Hyundai", m: ["i20", "Accent Blue", "Elantra", "Tucson", "Bayon"], p: 900000 },
-    { b: "Peugeot", m: ["208", "308", "3008", "508", "2008"], p: 1250000 },
-    { b: "Citroen", m: ["C3", "C4", "C5 Aircross", "C-Elysee", "Ami"], p: 850000 },
-    { b: "Opel", m: ["Corsa", "Astra", "Insignia", "Mokka", "Crossland"], p: 1150000 },
-    { b: "Volvo", m: ["S60", "S90", "XC40", "XC60", "XC90"], p: 3000000 },
-    { b: "Nissan", m: ["Micra", "Qashqai", "Juke", "X-Trail", "Navara", "GTR"], p: 1350000 },
-    { b: "Skoda", m: ["Octavia", "Superb", "Fabia", "Kamiq", "Kodiaq"], p: 1450000 },
-    { b: "Seat", m: ["Leon", "Ibiza", "Ateca", "Arona", "Tarraco"], p: 1300000 },
-    { b: "Kia", m: ["Rio", "Ceed", "Sportage", "Stonic", "Sorento"], p: 1200000 },
-    { b: "Dacia", m: ["Duster", "Sandero", "Logan", "Jogger", "Spring"], p: 850000 },
-    { b: "Land Rover", m: ["Range Rover", "Evoque", "Defender", "Discovery"], p: 4500000 },
-    { b: "Porsche", m: ["Taycan", "Panamera", "Cayenne", "Macan", "911"], p: 8500000 },
-    { b: "Ferrari", m: ["458 Italia", "488 GTB", "F12", "California"], p: 12000000 }
+    // ÖZEL ARAÇLAR (TOGG ve MAKAM)
+    { b: "TOGG", m: ["T10X V2 Uzun Menzil", "T10F Sedan", "T8X", "T10X 100. Yıl Özel", "C-SUV Launch Edition"], p: 1950000, type: "togg" },
+    { b: "MAKAM", m: ["Mercedes S600 Guard (Zırhlı)", "TOGG T10X (RTE İmzalı)", "Maybach S680 (Konvoy)", "Cadillac (Başkan)"], p: 15000000, type: "makam" },
+    
+    // STANDART ARAÇLAR
+    { b: "Tofaş", m: ["Şahin", "Doğan SLX", "Kartal", "Serçe"], p: 250000, type: "normal" },
+    { b: "BMW", m: ["3.20i", "5.20d", "M3", "M4", "7.40", "X5", "i8"], p: 2500000, type: "normal" },
+    { b: "Mercedes", m: ["C180", "E250", "S400", "G63 AMG", "CLA 200", "Vito"], p: 2800000, type: "normal" },
+    { b: "VW", m: ["Passat", "Golf", "Polo", "Arteon", "Tiguan", "Caddy"], p: 1400000, type: "normal" },
+    { b: "Fiat", m: ["Egea", "Linea", "Doblo", "Fiorino", "Freemont"], p: 700000, type: "normal" },
+    { b: "Renault", m: ["Clio", "Megane", "Symbol", "Taliant", "Kadjar"], p: 800000, type: "normal" },
+    { b: "Honda", m: ["Civic", "City", "Accord", "CR-V", "Jazz", "S2000"], p: 1100000, type: "normal" },
+    { b: "Toyota", m: ["Corolla", "Yaris", "Camry", "C-HR", "RAV4", "Supra"], p: 1200000, type: "normal" },
+    { b: "Ford", m: ["Focus", "Fiesta", "Mondeo", "Kuga", "Ranger", "Mustang"], p: 1300000, type: "normal" },
+    { b: "Hyundai", m: ["i20", "Accent Blue", "Elantra", "Tucson", "Bayon"], p: 900000, type: "normal" },
+    { b: "Peugeot", m: ["208", "308", "3008", "508", "2008"], p: 1250000, type: "normal" },
+    { b: "Citroen", m: ["C3", "C4", "C5 Aircross", "C-Elysee", "Ami"], p: 850000, type: "normal" },
+    { b: "Opel", m: ["Corsa", "Astra", "Insignia", "Mokka", "Crossland"], p: 1150000, type: "normal" },
+    { b: "Volvo", m: ["S60", "S90", "XC40", "XC60", "XC90"], p: 3000000, type: "normal" },
+    { b: "Nissan", m: ["Micra", "Qashqai", "Juke", "X-Trail", "Navara", "GTR"], p: 1350000, type: "normal" },
+    { b: "Skoda", m: ["Octavia", "Superb", "Fabia", "Kamiq", "Kodiaq"], p: 1450000, type: "normal" },
+    { b: "Dacia", m: ["Duster", "Sandero", "Logan", "Jogger", "Spring"], p: 850000, type: "normal" },
+    { b: "Land Rover", m: ["Range Rover", "Evoque", "Defender", "Discovery"], p: 4500000, type: "normal" },
+    { b: "Porsche", m: ["Taycan", "Panamera", "Cayenne", "Macan", "911"], p: 6000000, type: "normal" }
 ];
 
-const years = [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023];
-const packages = ["Boş Paket", "Dolu Paket", "Full+Full", "Gırtlak Dolu"];
-
+const years = [2018, 2019, 2020, 2021, 2022, 2023, 2024];
 let cars = [];
 
-// Otomatik 500+ Araba Üretme Döngüsü
+// Otomatik Liste Oluşturucu
 carDatabase.forEach(brand => {
     brand.m.forEach(model => {
         years.forEach(year => {
-            // Her modelden farklı yıllarda üret
-            // Fiyatı yıla göre biraz değiştir
-            let yearMultiplier = 1 + ((year - 2015) * 0.05);
+            // TOGG ve Makam araçları hep yeni model olsun
+            if ((brand.b === "TOGG" || brand.b === "MAKAM") && year < 2023) return;
+
+            let yearMultiplier = 1 + ((year - 2018) * 0.05);
             let finalName = `${brand.b} ${model} (${year})`;
             let finalPrice = Math.floor(brand.p * yearMultiplier);
             
-            cars.push({name: finalName, base: finalPrice});
+            cars.push({name: finalName, base: finalPrice, type: brand.type});
         });
     });
 });
-// Listeyi biraz karıştır ki hep aynıları gelmesin
-cars.sort(() => Math.random() - 0.5);
 
+// Listeyi karıştır
+cars.sort(() => Math.random() - 0.5);
 
 // ==== ELEMENTLER ====
 const moneySpan = document.getElementById("money");
@@ -169,27 +187,40 @@ function update(){
 }
 
 function genCar(){
-    // Genişletilmiş listeden rastgele seç
-    let c = cars[Math.floor(Math.random()*cars.length)];
+    // Makam araçları daha az çıksın
+    let chance = Math.random();
+    let pool = cars;
+    
+    if(chance > 0.98) { // %2 ihtimalle Makam aracı
+        pool = cars.filter(c => c.type === "makam");
+    } else if (chance > 0.85) { // %13 ihtimalle TOGG
+        pool = cars.filter(c => c.type === "togg");
+    }
+
+    if(pool.length === 0) pool = cars; // Hata önleyici
+
+    let c = pool[Math.floor(Math.random()*pool.length)];
     let price = Math.floor(c.base * (0.8 + Math.random()*0.4));
+    
     return {
         id: Math.random(),
         name: c.name,
         price: price,
         real: Math.floor(price * (1.1 + rep/200)),
+        type: c.type,
         checked: false
     };
 }
 
 function refresh(){
     if(money < 1000){
-        log("Paran yok, piyasa yenilenmedi.");
+        log("❌ Kasa boş, piyasayı yenileyemiyorsun.");
         return;
     }
     money -= 1000;
     market = [];
-    for(let i=0;i<4;i++) market.push(genCar());
-    log("Piyasa yenilendi.");
+    for(let i=0;i<5;i++) market.push(genCar()); // Artık 5 araba geliyor
+    log("Piyasa yenilendi. Yeni araçlar düştü.");
     update();
 }
 
@@ -197,36 +228,48 @@ function buy(id){
     let i = market.findIndex(x=>x.id===id);
     let car = market[i];
     if(money < car.price){
-        log("Paran yetmedi.");
+        log("❌ Paran yetmiyor. Kredi çekmeyi dene (Şaka, çalış kazan).");
         return;
     }
     money -= car.price;
     garage.push(car);
     market.splice(i,1);
-    log(car.name + " satın alındı.");
+    
+    if(car.type === "togg") log("🇹🇷 Hayırlı olsun! Yerli ve milli gururumuz garajda.");
+    else if(car.type === "makam") log("😎 Reis'in emaneti garajda. Korumalar kapıda.");
+    else log(`✅ ${car.name} satın alındı.`);
+    
     update();
 }
 
 function expert(id){
     let car = garage.find(x=>x.id===id);
     if(money < 5000){
-        log("Ekspertiz için paran yok.");
+        log("Ekspertiz parası yok.");
         return;
     }
     money -= 5000;
     car.checked = true;
-    log(car.name + " ekspertize girdi. Gerçek değer: " + car.real.toLocaleString() + " TL");
+    log(`🔍 ${car.name} ekspertiz sonucu: ${car.real.toLocaleString()} TL eder.`);
     update();
 }
 
 function sell(id){
     let i = garage.findIndex(x=>x.id===id);
     let car = garage[i];
+    
+    // Satış teklifi hesaplama
     let offer = car.checked
         ? Math.floor(car.real * (0.9 + Math.random()*0.2))
         : Math.floor(car.price * (0.6 + Math.random()*0.3));
 
-    if(confirm(car.name + "\nTeklif: " + offer.toLocaleString() + " TL\nSatılsın mı?")){
+    // Makam araçları daha zor satılır ama iyi para bırakır
+    if(car.type === "makam" && Math.random() > 0.5) {
+        log("❌ Müşteri korktu, 'Beni içeri alırlar' dedi ve kaçtı.");
+        return;
+    }
+
+    if(confirm(`${car.name}\n\nMüşteri Teklifi: ${offer.toLocaleString()} TL\n\nSatıyor musun?`)){
         money += offer;
         let kar = offer - car.price;
         rep += kar > 0 ? 2 : -1;
@@ -235,11 +278,13 @@ function sell(id){
         if(xp >= 50){
             lvl++;
             xp = 0;
-            log("🔥 SEVİYE ATLADIN!");
+            log("🆙 SEVİYE ATLADIN! Artık daha iyi galerisisin.");
         }
 
         garage.splice(i,1);
-        log(car.name + " satıldı. Kar: " + kar.toLocaleString() + " TL");
+        if(kar > 0) log(`💰 ${car.name} satıldı. Temiz kâr: ${kar.toLocaleString()} TL`);
+        else log(`📉 ${car.name} zararına gitti.`);
+        
         update();
     }
 }
@@ -249,52 +294,45 @@ function render(){
     garageDiv.innerHTML = "";
 
     market.forEach(c=>{
+        let btnClass = c.price > money ? "buy" : "buy"; // Stil aynı kalsın
+        let styleClass = c.type === "togg" ? "togg" : (c.type === "makam" ? "makam" : "car");
+        
         marketDiv.innerHTML += `
-        <div class="car">
-            <b>${c.name}</b><br>
-            ${c.price.toLocaleString()} TL<br>
+        <div class="${styleClass}">
+            <div style="text-align:left">
+                <b>${c.name}</b><br>
+                <small>${c.price.toLocaleString()} TL</small>
+            </div>
             <button class="buy" onclick="buy(${c.id})">AL</button>
         </div>`;
     });
 
     if(garage.length === 0){
-        garageDiv.innerHTML = "Garaj boş.";
+        garageDiv.innerHTML = "<p style='color:#7f8c8d'>Garaj boş.</p>";
     }
 
     garage.forEach(c=>{
-        marketDiv.innerHTML += ``; // Temizlik
+        let styleClass = c.type === "togg" ? "togg" : (c.type === "makam" ? "makam" : "car");
         garageDiv.innerHTML += `
-        <div class="car">
-            <b>${c.name}</b><br>
-            Maliyet: ${c.price.toLocaleString()} TL<br>
-            <button class="exp" onclick="expert(${c.id})">Ekspertiz</button>
-            <button class="sell" onclick="sell(${c.id})">SAT</button>
+        <div class="${styleClass}">
+             <div style="text-align:left">
+                <b>${c.name}</b><br>
+                <small>Maliyet: ${c.price.toLocaleString()}</small>
+            </div>
+            <div>
+                <button class="exp" onclick="expert(${c.id})">Exp</button>
+                <button class="sell" onclick="sell(${c.id})">SAT</button>
+            </div>
         </div>`;
     });
 }
 
-// ==== HİLE SİSTEMİ ====
+// ==== GİZLİ KODLAR (HİLE) ====
 document.addEventListener("keydown",function(e){
     if(e.key==="Enter"){
-        let code = prompt("Hile kodunu gir:");
-        if(code==="kralgalerici20m" && !cheatUsed){
-            money += 20000000;
+        let code = prompt("GİZLİ KOD GİR:");
+        if((code==="külliye" || code==="reis" || code==="rte") && !cheatUsed){
+            money += 10000000;
+            rep = 100;
             cheatUsed = true;
-            log("💣 HİLE AKTİF! 20.000.000 TL eklendi.");
-            update();
-        }else if(cheatUsed){
-            log("❌ Bu hile zaten kullanıldı.");
-        }else{
-            log("❌ Geçersiz hile kodu.");
-        }
-    }
-});
-
-// ==== BAŞLAT ====
-refresh();
-money += 1000;
-update();
-</script>
-
-</body>
-</html>
+            log("🇹🇷 VERGİ AFFI GELDİ! K

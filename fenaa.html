@@ -98,14 +98,55 @@ let garage = [];
 let market = [];
 let cheatUsed = false;
 
-// ==== ARAÇLAR ====
-const cars = [
-    {name:"Tofaş Şahin", base:200000},
-    {name:"Honda Civic VTEC", base:800000},
-    {name:"Passat Aşiret", base:1500000},
-    {name:"BMW 3.20 Yan", base:2000000},
-    {name:"Fiat Egea", base:700000}
+// ==== ARAÇ VERİTABANI VE OLUŞTURUCU ====
+const carDatabase = [
+    { b: "Tofaş", m: ["Şahin", "Doğan SLX", "Kartal", "Serçe"], p: 250000 },
+    { b: "BMW", m: ["3.20i", "5.20d", "M3", "M4", "7.40", "X5", "i8"], p: 2500000 },
+    { b: "Mercedes", m: ["C180", "E250", "S400", "G63 AMG", "CLA 200", "Vito"], p: 2800000 },
+    { b: "Audi", m: ["A3", "A4", "A6", "Q7", "RS6", "R8"], p: 2600000 },
+    { b: "VW", m: ["Passat", "Golf", "Polo", "Arteon", "Tiguan", "Caddy"], p: 1400000 },
+    { b: "Fiat", m: ["Egea", "Linea", "Doblo", "Fiorino", "Freemont"], p: 700000 },
+    { b: "Renault", m: ["Clio", "Megane", "Symbol", "Taliant", "Kadjar"], p: 800000 },
+    { b: "Honda", m: ["Civic", "City", "Accord", "CR-V", "Jazz", "S2000"], p: 1100000 },
+    { b: "Toyota", m: ["Corolla", "Yaris", "Camry", "C-HR", "RAV4", "Supra"], p: 1200000 },
+    { b: "Ford", m: ["Focus", "Fiesta", "Mondeo", "Kuga", "Ranger", "Mustang"], p: 1300000 },
+    { b: "Hyundai", m: ["i20", "Accent Blue", "Elantra", "Tucson", "Bayon"], p: 900000 },
+    { b: "Peugeot", m: ["208", "308", "3008", "508", "2008"], p: 1250000 },
+    { b: "Citroen", m: ["C3", "C4", "C5 Aircross", "C-Elysee", "Ami"], p: 850000 },
+    { b: "Opel", m: ["Corsa", "Astra", "Insignia", "Mokka", "Crossland"], p: 1150000 },
+    { b: "Volvo", m: ["S60", "S90", "XC40", "XC60", "XC90"], p: 3000000 },
+    { b: "Nissan", m: ["Micra", "Qashqai", "Juke", "X-Trail", "Navara", "GTR"], p: 1350000 },
+    { b: "Skoda", m: ["Octavia", "Superb", "Fabia", "Kamiq", "Kodiaq"], p: 1450000 },
+    { b: "Seat", m: ["Leon", "Ibiza", "Ateca", "Arona", "Tarraco"], p: 1300000 },
+    { b: "Kia", m: ["Rio", "Ceed", "Sportage", "Stonic", "Sorento"], p: 1200000 },
+    { b: "Dacia", m: ["Duster", "Sandero", "Logan", "Jogger", "Spring"], p: 850000 },
+    { b: "Land Rover", m: ["Range Rover", "Evoque", "Defender", "Discovery"], p: 4500000 },
+    { b: "Porsche", m: ["Taycan", "Panamera", "Cayenne", "Macan", "911"], p: 8500000 },
+    { b: "Ferrari", m: ["458 Italia", "488 GTB", "F12", "California"], p: 12000000 }
 ];
+
+const years = [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023];
+const packages = ["Boş Paket", "Dolu Paket", "Full+Full", "Gırtlak Dolu"];
+
+let cars = [];
+
+// Otomatik 500+ Araba Üretme Döngüsü
+carDatabase.forEach(brand => {
+    brand.m.forEach(model => {
+        years.forEach(year => {
+            // Her modelden farklı yıllarda üret
+            // Fiyatı yıla göre biraz değiştir
+            let yearMultiplier = 1 + ((year - 2015) * 0.05);
+            let finalName = `${brand.b} ${model} (${year})`;
+            let finalPrice = Math.floor(brand.p * yearMultiplier);
+            
+            cars.push({name: finalName, base: finalPrice});
+        });
+    });
+});
+// Listeyi biraz karıştır ki hep aynıları gelmesin
+cars.sort(() => Math.random() - 0.5);
+
 
 // ==== ELEMENTLER ====
 const moneySpan = document.getElementById("money");
@@ -128,6 +169,7 @@ function update(){
 }
 
 function genCar(){
+    // Genişletilmiş listeden rastgele seç
     let c = cars[Math.floor(Math.random()*cars.length)];
     let price = Math.floor(c.base * (0.8 + Math.random()*0.4));
     return {
@@ -220,6 +262,7 @@ function render(){
     }
 
     garage.forEach(c=>{
+        marketDiv.innerHTML += ``; // Temizlik
         garageDiv.innerHTML += `
         <div class="car">
             <b>${c.name}</b><br>

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reis Galericilik: ONLINE EDITION</title>
+    <title>Reis Galericilik: PRO ONLINE</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background-color: #0f172a;
             color: #fff;
             margin: 0;
@@ -15,22 +15,21 @@
             flex-direction: column;
             align-items: center;
         }
-        h1 { color: #1abc9c; text-shadow: 2px 2px #000; letter-spacing: 2px; }
+        h1 { color: #1abc9c; text-shadow: 2px 2px #000; }
         .stats-bar {
             background: #1e293b;
             width: 100%;
-            max-width: 1000px;
+            max-width: 1100px;
             padding: 15px;
             border-radius: 10px;
             display: flex;
             justify-content: space-around;
             margin-bottom: 20px;
             border: 2px solid #1abc9c;
-            font-weight: bold;
         }
         .main-grid {
             display: grid;
-            grid-template-columns: 300px 1fr 300px;
+            grid-template-columns: 320px 1fr 320px;
             gap: 20px;
             width: 100%;
             max-width: 1400px;
@@ -40,108 +39,87 @@
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            height: fit-content;
         }
-        .panel h2 { border-bottom: 2px solid #1abc9c; padding-bottom: 10px; color: #1abc9c; font-size: 1.2em; }
+        .panel h2 { border-bottom: 2px solid #1abc9c; color: #1abc9c; font-size: 1.1em; padding-bottom: 5px;}
         
         .car-card {
             background: #f8fafc;
             color: #1e293b;
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 10px;
-            border-radius: 5px;
+            border-radius: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-left: 5px solid #64748b;
         }
         .car-card.makam { border-left: 8px solid #ef4444; background: #fee2e2; }
-        
+
         .btn {
             padding: 8px 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
-            transition: 0.2s;
         }
         .btn-buy { background: #22c55e; color: white; }
         .btn-sell { background: #f59e0b; color: white; }
-        
-        /* Chat ve Liderlik */
+        .btn-gamble { background: #8e44ad; color: white; width: 100%; margin-top: 5px; font-size: 0.8em; }
+
         #online-chat {
-            height: 300px;
+            height: 350px;
             background: #000;
             color: #22c55e;
             font-family: monospace;
-            font-size: 0.85em;
             padding: 10px;
             overflow-y: auto;
             border: 1px solid #334155;
+            font-size: 0.85em;
         }
-        .leaderboard-item {
+        .leader-row {
             display: flex;
             justify-content: space-between;
-            padding: 5px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #334155;
+            font-size: 0.9em;
         }
-        .online-tag {
-            background: #ef4444;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.7em;
-            animation: blink 1s infinite;
-        }
-        @keyframes blink { 50% { opacity: 0.5; } }
+        .player-row { color: #1abc9c; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h1>🇹🇷 REİS GALERİCİLİK: <span style="color:#ef4444">ONLINE (BETA)</span> 🇹🇷</h1>
+    <h1>🇹🇷 REİS GALERİCİLİK: PRO ONLINE 🇹🇷</h1>
 
     <div class="stats-bar">
-        <span id="money">Nakit: 750,000 TL</span>
-        <span id="inventory-count">Garaj: 0/6</span>
-        <span id="reputation">İtibar: %20</span>
-        <span id="online-count">🟢 1,452 Oyuncu Online</span>
+        <span id="money">Nakit: 750.000 TL</span>
+        <span id="inv">Garaj: 0/6</span>
+        <span id="online-count">🟢 Yükleniyor...</span>
     </div>
 
     <div class="main-grid">
         <div class="panel">
-            <h2>💬 GLOBAL CHAT</h2>
-            <div id="online-chat">
-                [Sistem]: Hoş geldin Reis. Odaya bağlandın.<br>
-            </div>
-            <div style="margin-top:10px; font-size: 0.8em; color: #94a3b8;">
-                *Botlar piyasadan araba kapabilir, hızlı ol!
-            </div>
+            <h2>💬 CANLI PİYASA AKIŞI</h2>
+            <div id="online-chat"></div>
         </div>
 
-        <div style="display:flex; flex-direction:column; gap:20px;">
-            <div class="panel">
-                <h2>📢 CANLI İHALE (Piyasa)</h2>
+        <div>
+            <div class="panel" style="margin-bottom:20px;">
+                <h2>📢 İHALE LİSTESİ</h2>
                 <div id="market-list"></div>
                 <button class="btn" style="background:#1abc9c; color:white; width:100%; margin-top:10px;" onclick="refreshMarket()">🔄 Piyasayı Yenile (1.000 TL)</button>
             </div>
-
             <div class="panel">
-                <h2>🏠 ÖZEL GARAJIM</h2>
+                <h2>🏠 GARAJIM</h2>
                 <div id="my-garage"></div>
             </div>
         </div>
 
         <div class="panel">
-            <h2>🏆 LİDERLİK TABLOSU</h2>
-            <div id="leaderboard">
-                <div class="leaderboard-item"><span>1. Berat_Albayrak</span> <span>999M+</span></div>
-                <div class="leaderboard-item"><span>2. Galeri_Lordu</span> <span>85M</span></div>
-                <div class="leaderboard-item" id="player-rank"><span>3. Sen (Reis)</span> <span id="player-money-rank">750K</span></div>
-            </div>
+            <h2>🏆 TOP 5 GALERİCİ</h2>
+            <div id="leaderboard"></div>
             
-            <h2 style="margin-top:20px;">🎲 CASINO</h2>
-            <button class="btn" style="background:#8e44ad; width:100%; margin-bottom:5px;" onclick="playGamble(100000)">100.000 TL Zar At</button>
-            <button class="btn" style="background:#ef4444; width:100%;" onclick="playGamble('all')">TÜMÜNÜ BAS (ALL-IN)</button>
+            <h2 style="margin-top:25px;">🎲 BOTLARLA RESTLEŞ</h2>
+            <div id="bot-gamble-list">
+                </div>
         </div>
     </div>
 
@@ -150,29 +128,84 @@
         let garage = [];
         let market = [];
         let maxGarage = 6;
-        const botNames = ["Gurbetçi_Erol", "Yancı_Mustafa", "Crypto_Cemo", "Vurguncu_34", "Hacı_Dayı", "Asfaltta_Yan", "Togg_Aşığı"];
+        const botNames = ["Gurbetçi_Erol", "Yancı_Mustafa", "Crypto_Cemo", "Vurguncu_34", "Hacı_Dayı", "Asfaltta_Yan", "Togg_Aşığı", "Gül_Otomotiv", "Reis_Fan_38"];
+        
+        // Botların paralarını random başlat
+        let bots = botNames.map(name => ({
+            name: name,
+            money: Math.floor(Math.random() * 5000000) + 1000000
+        }));
 
-        // Araçlar
         const carTypes = [
-            { name: "Tofaş Şahin", base: 200000 },
-            { name: "VW Passat", base: 1500000 },
-            { name: "TOGG T10X", base: 2000000, isMakam: true },
-            { name: "Mercedes S600", base: 12000000, isMakam: true },
-            { name: "BMW M4", base: 5000000 }
+            { name: "Tofaş Şahin", base: 250000 },
+            { name: "VW Passat", base: 1600000 },
+            { name: "TOGG T10X", base: 2100000, isMakam: true },
+            { name: "Mercedes S600", base: 13000000, isMakam: true },
+            { name: "Range Rover", base: 8500000 }
         ];
 
         function logChat(user, msg, color="#22c55e") {
             const chat = document.getElementById("online-chat");
-            chat.innerHTML += `[${user}]: <span style="color:${color}">${msg}</span><br>`;
-            chat.scrollTop = chat.scrollHeight;
+            const time = new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
+            chat.innerHTML = `<div><small style="color:#64748b">[${time}]</small> <b>${user}:</b> <span style="color:${color}">${msg}</span></div>` + chat.innerHTML;
         }
 
         function updateUI() {
             document.getElementById("money").innerText = `Nakit: ${money.toLocaleString()} TL`;
-            document.getElementById("player-money-rank").innerText = money.toLocaleString();
-            document.getElementById("inventory-count").innerText = `Garaj: ${garage.length}/${maxGarage}`;
+            document.getElementById("inv").innerText = `Garaj: ${garage.length}/${maxGarage}`;
             renderMarket();
             renderGarage();
+            renderLeaderboard();
+            renderBotGamble();
+        }
+
+        // --- ONLİNE SAYISI DİNAMİK ---
+        setInterval(() => {
+            const count = Math.floor(Math.random() * 200) + 1400;
+            document.getElementById("online-count").innerText = `🟢 ${count.toLocaleString()} Oyuncu Online`;
+        }, 3000);
+
+        // --- LİDERLİK TABLOSU ---
+        function renderLeaderboard() {
+            let all = [...bots, {name: "Sen (Reis)", money: money}];
+            all.sort((a,b) => b.money - a.money);
+            const div = document.getElementById("leaderboard");
+            div.innerHTML = "";
+            all.slice(0, 6).forEach((p, i) => {
+                const isPlayer = p.name.includes("Sen");
+                div.innerHTML += `<div class="leader-row ${isPlayer ? 'player-row' : ''}">
+                    <span>${i+1}. ${p.name}</span>
+                    <span>${p.money.toLocaleString()} TL</span>
+                </div>`;
+            });
+        }
+
+        // --- BOT KUMAR LİSTESİ ---
+        function renderBotGamble() {
+            const div = document.getElementById("bot-gamble-list");
+            div.innerHTML = "";
+            bots.slice(0, 3).forEach(bot => {
+                div.innerHTML += `
+                <div style="background:#334155; padding:8px; border-radius:5px; margin-bottom:5px; font-size:0.8em;">
+                    <span><b>${bot.name}</b> rest çekiyor!</span>
+                    <button class="btn-gamble btn" onclick="challengeBot('${bot.name}')">50.000 TL Bas</button>
+                </div>`;
+            });
+        }
+
+        function challengeBot(botName) {
+            if(money < 50000) return;
+            money -= 50000;
+            logChat("Sistem", `${botName} ile 50.000 TL'sine restleştin...`, "#8e44ad");
+            setTimeout(() => {
+                if(Math.random() > 0.5) {
+                    money += 100000;
+                    logChat(botName, "Ah be Reis, temiz kazandın. Al parayı.", "#f1c40f");
+                } else {
+                    logChat(botName, "Hahaha! Parayı masada bıraktın Reis, sağol.", "#ef4444");
+                }
+                updateUI();
+            }, 1000);
         }
 
         function generateCar() {
@@ -181,6 +214,7 @@
         }
 
         function refreshMarket() {
+            if(money < 1000) return;
             money -= 1000;
             market = [];
             for(let i=0; i<4; i++) market.push(generateCar());
@@ -189,13 +223,13 @@
 
         function buyCar(id) {
             const idx = market.findIndex(c => c.id === id);
-            if (idx === -1) { alert("Bu aracı başkası kaptı!"); return; }
+            if (idx === -1) return;
             const car = market[idx];
             if (money >= car.price && garage.length < maxGarage) {
                 money -= car.price;
                 garage.push(car);
                 market.splice(idx, 1);
-                logChat("Sen", `${car.name} aracını aldın, hayırlı olsun.`, "#1abc9c");
+                logChat("Sistem", `${car.name} aracını aldın.`, "#1abc9c");
                 updateUI();
             }
         }
@@ -203,45 +237,29 @@
         function sellCar(id) {
             const idx = garage.findIndex(c => c.id === id);
             const car = garage[idx];
-            let profit = Math.floor(car.price * (0.9 + Math.random()*0.6));
-            if(confirm(`Teklif: ${profit.toLocaleString()} TL. Satıyor musun?`)) {
-                money += profit;
-                logChat("Sen", `${car.name} satışından ${profit - car.price} TL kar ettin.`);
+            const buyer = botNames[Math.floor(Math.random() * botNames.length)];
+            let profitVal = Math.floor(car.price * (0.9 + Math.random()*0.7));
+            
+            if(confirm(`${car.name} için ${buyer} ${profitVal.toLocaleString()} TL teklif verdi. Satılsın mı?`)) {
+                let net = profitVal - car.price;
+                money += profitVal;
+                logChat("Piyasa", `<b>Sen</b>, ${car.name} aracını <b>${buyer}</b> isimli kullanıcıya ${profitVal.toLocaleString()} TL'ye sattın! (${net > 0 ? '+'+net : net} TL)`, "#f59e0b");
                 garage.splice(idx, 1);
                 updateUI();
             }
         }
 
-        function playGamble(amt) {
-            let bet = amt === 'all' ? money : amt;
-            if(money < bet) return;
-            money -= bet;
-            if(Math.random() > 0.5) {
-                money += bet * 2;
-                logChat("Casino", `TEBRİKLER! ${bet*2} TL kazandın!`, "#f1c40f");
-            } else {
-                logChat("Casino", `KAYBETTİN! ${bet} TL masada kaldı.`, "#ef4444");
-            }
-            updateUI();
-        }
-
-        // --- MULTIPLAYER SİMÜLASYONU (BOTLAR) ---
+        // --- BOT TİCARET SİMÜLASYONU ---
         setInterval(() => {
-            if (market.length > 0 && Math.random() > 0.7) {
-                const bot = botNames[Math.floor(Math.random() * botNames.length)];
-                const carIdx = Math.floor(Math.random() * market.length);
-                const car = market[carIdx];
-                logChat(bot, `${car.name} aracını piyasadan kaptım!`, "#94a3b8");
-                market.splice(carIdx, 1);
-                renderMarket();
+            const bot = bots[Math.floor(Math.random() * bots.length)];
+            const car = carTypes[Math.floor(Math.random() * carTypes.length)];
+            const profit = Math.floor(Math.random() * 500000) - 100000;
+            bot.money += profit;
+            if(Math.random() > 0.8) {
+                logChat(bot.name, `${car.name} satışından ${profit.toLocaleString()} TL kazandım.`, "#94a3b8");
             }
-        }, 5000);
-
-        setInterval(() => {
-            const bot = botNames[Math.floor(Math.random() * botNames.length)];
-            const msgs = ["TOGG çok fena kâr bıraktı be!", "Kumarda her şeyi kaybettim...", "Acil Passat lazım, var mı satan?", "İhaleleri takip edin beyler."];
-            logChat(bot, msgs[Math.floor(Math.random() * msgs.length)], "#cbd5e1");
-        }, 8000);
+            renderLeaderboard();
+        }, 4000);
 
         function renderMarket() {
             const div = document.getElementById("market-list"); div.innerHTML = "";
@@ -257,18 +275,17 @@
             const div = document.getElementById("my-garage"); div.innerHTML = "";
             garage.forEach(c => {
                 div.innerHTML += `<div class="car-card">
-                    <div><strong>${c.name}</strong><br>Maliyet: ${c.price.toLocaleString()} TL</div>
-                    <button class="btn btn-sell" onclick="sellCar('${c.id}')">MÜŞTERİ BUL</button>
+                    <div><strong>${c.name}</strong><br>Maliyet: ${c.price.toLocaleString()}</div>
+                    <button class="btn btn-sell" onclick="sellCar('${c.id}')">SAT</button>
                 </div>`;
             });
         }
 
-        // Hile
         document.addEventListener('keypress', e => {
             if (e.key === 'r') {
-                if (prompt("ADMIN CODE:") === "saray60") {
+                if (prompt("ADMIN:") === "saray60") {
                     money += 60000000;
-                    logChat("SİSTEM", "EKONOMİK PAKET TANIMLANDI: +60M TL", "#f1c40f");
+                    logChat("SİSTEM", "HİLE AKTİF: +60M TL", "#f1c40f");
                     updateUI();
                 }
             }

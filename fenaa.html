@@ -4,62 +4,18 @@
 <meta charset="UTF-8">
 <title>Kral Galericilik Simülatörü</title>
 <style>
-body{
-    background:#1a1a1a;
-    color:#fff;
-    font-family:Segoe UI;
-    padding:20px;
-    text-align:center
-}
+body{background:#1a1a1a;color:#fff;font-family:Segoe UI,sans-serif;padding:20px;text-align:center}
 h1{color:#f1c40f}
-.stats{
-    display:flex;
-    justify-content:space-around;
-    background:#333;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:15px
-}
-.container{
-    display:flex;
-    gap:15px;
-    justify-content:center;
-    flex-wrap:wrap
-}
-.panel{
-    background:#2c3e50;
-    padding:15px;
-    border-radius:10px;
-    width:45%;
-    min-width:300px
-}
-.car{
-    background:#ecf0f1;
-    color:#000;
-    padding:10px;
-    border-radius:6px;
-    margin-bottom:8px
-}
-button{
-    padding:6px 12px;
-    border:none;
-    border-radius:5px;
-    font-weight:bold;
-    cursor:pointer;
-    margin:3px
-}
+.stats{display:flex;justify-content:space-around;background:#333;padding:15px;border-radius:10px;margin-bottom:15px}
+.container{display:flex;gap:15px;justify-content:center;flex-wrap:wrap}
+.panel{background:#2c3e50;padding:15px;border-radius:10px;width:45%;min-width:300px}
+.car{background:#ecf0f1;color:#000;padding:10px;border-radius:6px;margin-bottom:8px}
+button{padding:6px 12px;border:none;border-radius:5px;font-weight:bold;cursor:pointer;margin:3px}
 .buy{background:#2ecc71}
 .sell{background:#e67e22}
 .exp{background:#3498db;color:#fff}
-#log{
-    background:#000;
-    color:#0f0;
-    height:120px;
-    overflow:auto;
-    margin-top:15px;
-    padding:10px;
-    font-family:monospace
-}
+#log{background:#000;color:#0f0;height:150px;overflow:auto;margin-top:15px;padding:10px;font-family:monospace;text-align:left}
+.rte{border-left:5px solid #e74c3c;background:#fdecea}
 </style>
 </head>
 
@@ -68,232 +24,173 @@ button{
 <h1>🚗 KRAL GALERİCİLİK 🚗</h1>
 
 <div class="stats">
-    <span id="money"></span>
-    <span id="rep"></span>
-    <span id="lvl"></span>
+  <span id="money"></span>
+  <span id="rep"></span>
+  <span id="lvl"></span>
 </div>
 
 <div class="container">
-    <div class="panel">
-        <h3>📢 PİYASA</h3>
-        <div id="market"></div>
-        <button onclick="refresh()">🔄 Yenile (1.000 TL)</button>
-    </div>
+  <div class="panel">
+    <h3>📢 PİYASA</h3>
+    <div id="market"></div>
+    <button onclick="refresh()">🔄 Yenile (1.000 TL)</button>
+  </div>
 
-    <div class="panel">
-        <h3>🏠 GARAJ</h3>
-        <div id="garage"></div>
-    </div>
+  <div class="panel">
+    <h3>🏠 GARAJ</h3>
+    <div id="garage"></div>
+  </div>
 </div>
 
 <div id="log">Sisteme hoş geldin galerici...</div>
 
 <script>
 // ==== OYUN DEĞİŞKENLERİ ====
-let money = 500000;
-let rep = 10;
-let lvl = 1;
-let xp = 0;
-let garage = [];
-let market = [];
-let cheatUsed = false;
+let money=500000, rep=10, lvl=1, xp=0;
+let garage=[], market=[], cheatUsed=false;
 
-// ==== ARAÇ VERİTABANI VE OLUŞTURUCU ====
-const carDatabase = [
-    { b: "Tofaş", m: ["Şahin", "Doğan SLX", "Kartal", "Serçe"], p: 250000 },
-    { b: "BMW", m: ["3.20i", "5.20d", "M3", "M4", "7.40", "X5", "i8"], p: 2500000 },
-    { b: "Mercedes", m: ["C180", "E250", "S400", "G63 AMG", "CLA 200", "Vito"], p: 2800000 },
-    { b: "Audi", m: ["A3", "A4", "A6", "Q7", "RS6", "R8"], p: 2600000 },
-    { b: "VW", m: ["Passat", "Golf", "Polo", "Arteon", "Tiguan", "Caddy"], p: 1400000 },
-    { b: "Fiat", m: ["Egea", "Linea", "Doblo", "Fiorino", "Freemont"], p: 700000 },
-    { b: "Renault", m: ["Clio", "Megane", "Symbol", "Taliant", "Kadjar"], p: 800000 },
-    { b: "Honda", m: ["Civic", "City", "Accord", "CR-V", "Jazz", "S2000"], p: 1100000 },
-    { b: "Toyota", m: ["Corolla", "Yaris", "Camry", "C-HR", "RAV4", "Supra"], p: 1200000 },
-    { b: "Ford", m: ["Focus", "Fiesta", "Mondeo", "Kuga", "Ranger", "Mustang"], p: 1300000 },
-    { b: "Hyundai", m: ["i20", "Accent Blue", "Elantra", "Tucson", "Bayon"], p: 900000 },
-    { b: "Peugeot", m: ["208", "308", "3008", "508", "2008"], p: 1250000 },
-    { b: "Citroen", m: ["C3", "C4", "C5 Aircross", "C-Elysee", "Ami"], p: 850000 },
-    { b: "Opel", m: ["Corsa", "Astra", "Insignia", "Mokka", "Crossland"], p: 1150000 },
-    { b: "Volvo", m: ["S60", "S90", "XC40", "XC60", "XC90"], p: 3000000 },
-    { b: "Nissan", m: ["Micra", "Qashqai", "Juke", "X-Trail", "Navara", "GTR"], p: 1350000 },
-    { b: "Skoda", m: ["Octavia", "Superb", "Fabia", "Kamiq", "Kodiaq"], p: 1450000 },
-    { b: "Seat", m: ["Leon", "Ibiza", "Ateca", "Arona", "Tarraco"], p: 1300000 },
-    { b: "Kia", m: ["Rio", "Ceed", "Sportage", "Stonic", "Sorento"], p: 1200000 },
-    { b: "Dacia", m: ["Duster", "Sandero", "Logan", "Jogger", "Spring"], p: 850000 },
-    { b: "Land Rover", m: ["Range Rover", "Evoque", "Defender", "Discovery"], p: 4500000 },
-    { b: "Porsche", m: ["Taycan", "Panamera", "Cayenne", "Macan", "911"], p: 6000000 },
-    { b: "Ferrari", m: ["458 Italia", "488 GTB", "F12", "California"], p: 12000000 }
+// ==== ARAÇ DB ====
+const carDatabase=[
+ {b:"Tofaş",m:["Şahin","Doğan SLX","Kartal"],p:250000},
+ {b:"BMW",m:["3.20i","5.20d","M4"],p:2500000},
+ {b:"Mercedes",m:["C180","E250","G63"],p:2800000},
+ {b:"Audi",m:["A3","A6","RS6"],p:2600000},
+ {b:"Toyota",m:["Corolla","Camry","Supra"],p:1200000},
+ {b:"Porsche",m:["911","Cayenne"],p:6000000}
 ];
+const years=[2019,2020,2021,2022,2023];
+let cars=[];
 
-const years = [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023];
-const packages = ["Boş Paket", "Dolu Paket", "Full+Full", "Gırtlak Dolu"];
-
-let cars = [];
-
-// Otomatik 500+ Araba Üretme Döngüsü
-carDatabase.forEach(brand => {
-    brand.m.forEach(model => {
-        years.forEach(year => {
-            // Her modelden farklı yıllarda üret
-            // Fiyatı yıla göre biraz değiştir
-            let yearMultiplier = 1 + ((year - 2015) * 0.05);
-            let finalName = `${brand.b} ${model} (${year})`;
-            let finalPrice = Math.floor(brand.p * yearMultiplier);
-            
-            cars.push({name: finalName, base: finalPrice});
-        });
-    });
+// ==== 500+ ARAÇ ====
+carDatabase.forEach(b=>{
+ b.m.forEach(m=>{
+  years.forEach(y=>{
+   let mul=1+((y-2019)*0.05);
+   cars.push({name:`${b.b} ${m} (${y})`,base:Math.floor(b.p*mul)});
+  });
+ });
 });
-// Listeyi biraz karıştır ki hep aynıları gelmesin
-cars.sort(() => Math.random() - 0.5);
-
+cars.sort(()=>Math.random()-0.5);
 
 // ==== ELEMENTLER ====
-const moneySpan = document.getElementById("money");
-const repSpan = document.getElementById("rep");
-const lvlSpan = document.getElementById("lvl");
-const marketDiv = document.getElementById("market");
-const garageDiv = document.getElementById("garage");
-const logDiv = document.getElementById("log");
+const moneySpan=document.getElementById("money");
+const repSpan=document.getElementById("rep");
+const lvlSpan=document.getElementById("lvl");
+const marketDiv=document.getElementById("market");
+const garageDiv=document.getElementById("garage");
+const logDiv=document.getElementById("log");
 
-// ==== FONKSİYONLAR ====
-function log(msg){
-    logDiv.innerHTML = "> " + msg + "<br>" + logDiv.innerHTML;
+// ==== YARDIMCI ====
+function log(msg, cls=""){
+ logDiv.innerHTML=`<div class="${cls}">> ${msg}</div>`+logDiv.innerHTML;
 }
-
 function update(){
-    moneySpan.innerText = "💰 " + money.toLocaleString("tr-TR") + " TL";
-    repSpan.innerText = "⭐ İtibar %" + rep;
-    lvlSpan.innerText = "🏆 Seviye " + lvl;
-    render();
+ moneySpan.innerText="💰 "+money.toLocaleString("tr-TR")+" TL";
+ repSpan.innerText="⭐ İtibar %"+rep;
+ lvlSpan.innerText="🏆 Seviye "+lvl;
+ render();
 }
-
 function genCar(){
-    // Genişletilmiş listeden rastgele seç
-    let c = cars[Math.floor(Math.random()*cars.length)];
-    let price = Math.floor(c.base * (0.8 + Math.random()*0.4));
-    return {
-        id: Math.random(),
-        name: c.name,
-        price: price,
-        real: Math.floor(price * (1.1 + rep/200)),
-        checked: false
-    };
+ let c=cars[Math.floor(Math.random()*cars.length)];
+ let price=Math.floor(c.base*(0.8+Math.random()*0.4));
+ return {id:Math.random(),name:c.name,price,real:Math.floor(price*(1.1+rep/200)),checked:false};
 }
 
+// ==== OYUN ====
 function refresh(){
-    if(money < 1000){
-        log("Paran yok, piyasa yenilenmedi.");
-        return;
-    }
-    money -= 1000;
-    market = [];
-    for(let i=0;i<4;i++) market.push(genCar());
-    log("Piyasa yenilendi.");
-    update();
+ if(money<1000){log("Paran yok.");return;}
+ money-=1000; market=[];
+ for(let i=0;i<4;i++) market.push(genCar());
+ log("Piyasa yenilendi.");
+ update();
 }
-
 function buy(id){
-    let i = market.findIndex(x=>x.id===id);
-    let car = market[i];
-    if(money < car.price){
-        log("Paran yetmedi.");
-        return;
-    }
-    money -= car.price;
-    garage.push(car);
-    market.splice(i,1);
-    log(car.name + " satın alındı.");
-    update();
+ let i=market.findIndex(x=>x.id===id), c=market[i];
+ if(money<c.price){log("Paran yetmedi.");return;}
+ money-=c.price; garage.push(c); market.splice(i,1);
+ log(c.name+" satın alındı.");
+ update();
 }
-
 function expert(id){
-    let car = garage.find(x=>x.id===id);
-    if(money < 5000){
-        log("Ekspertiz için paran yok.");
-        return;
-    }
-    money -= 5000;
-    car.checked = true;
-    log(car.name + " ekspertize girdi. Gerçek değer: " + car.real.toLocaleString() + " TL");
-    update();
+ let c=garage.find(x=>x.id===id);
+ if(money<5000){log("Ekspertiz parası yok.");return;}
+ money-=5000; c.checked=true;
+ log(c.name+" gerçek değeri: "+c.real.toLocaleString()+" TL");
+ update();
 }
-
 function sell(id){
-    let i = garage.findIndex(x=>x.id===id);
-    let car = garage[i];
-    let offer = car.checked
-        ? Math.floor(car.real * (0.9 + Math.random()*0.2))
-        : Math.floor(car.price * (0.6 + Math.random()*0.3));
-
-    if(confirm(car.name + "\nTeklif: " + offer.toLocaleString() + " TL\nSatılsın mı?")){
-        money += offer;
-        let kar = offer - car.price;
-        rep += kar > 0 ? 2 : -1;
-        xp += 10;
-
-        if(xp >= 50){
-            lvl++;
-            xp = 0;
-            log("🔥 SEVİYE ATLADIN!");
-        }
-
-        garage.splice(i,1);
-        log(car.name + " satıldı. Kar: " + kar.toLocaleString() + " TL");
-        update();
-    }
+ let i=garage.findIndex(x=>x.id===id), c=garage[i];
+ let offer=c.checked?Math.floor(c.real*(0.9+Math.random()*0.2))
+                    :Math.floor(c.price*(0.6+Math.random()*0.3));
+ if(confirm(c.name+"\nTeklif: "+offer.toLocaleString()+" TL")){
+  money+=offer;
+  let kar=offer-c.price; rep+=kar>0?2:-1; xp+=10;
+  if(xp>=50){lvl++;xp=0;log("🔥 SEVİYE ATLADIN!");}
+  garage.splice(i,1);
+  log(c.name+" satıldı. Kar: "+kar.toLocaleString()+" TL");
+  update();
+ }
 }
-
 function render(){
-    marketDiv.innerHTML = "";
-    garageDiv.innerHTML = "";
-
-    market.forEach(c=>{
-        marketDiv.innerHTML += `
-        <div class="car">
-            <b>${c.name}</b><br>
-            ${c.price.toLocaleString()} TL<br>
-            <button class="buy" onclick="buy(${c.id})">AL</button>
-        </div>`;
-    });
-
-    if(garage.length === 0){
-        garageDiv.innerHTML = "Garaj boş.";
-    }
-
-    garage.forEach(c=>{
-        marketDiv.innerHTML += ``; // Temizlik
-        garageDiv.innerHTML += `
-        <div class="car">
-            <b>${c.name}</b><br>
-            Maliyet: ${c.price.toLocaleString()} TL<br>
-            <button class="exp" onclick="expert(${c.id})">Ekspertiz</button>
-            <button class="sell" onclick="sell(${c.id})">SAT</button>
-        </div>`;
-    });
+ marketDiv.innerHTML=""; garageDiv.innerHTML="";
+ market.forEach(c=>{
+  marketDiv.innerHTML+=`
+   <div class="car">
+    <b>${c.name}</b><br>${c.price.toLocaleString()} TL<br>
+    <button class="buy" onclick="buy(${c.id})">AL</button>
+   </div>`;
+ });
+ if(!garage.length) garageDiv.innerHTML="Garaj boş.";
+ garage.forEach(c=>{
+  garageDiv.innerHTML+=`
+   <div class="car">
+    <b>${c.name}</b><br>Maliyet: ${c.price.toLocaleString()} TL<br>
+    <button class="exp" onclick="expert(${c.id})">Ekspertiz</button>
+    <button class="sell" onclick="sell(${c.id})">SAT</button>
+   </div>`;
+ });
 }
 
-// ==== HİLE SİSTEMİ ====
-document.addEventListener("keydown",function(e){
-    if(e.key==="Enter"){
-        let code = prompt("Hile kodunu gir:");
-        if(code==="kralgalerici20m" && !cheatUsed){
-            money += 20000000;
-            cheatUsed = true;
-            log("💣 HİLE AKTİF! 20.000.000 TL eklendi.");
-            update();
-        }else if(cheatUsed){
-            log("❌ Bu hile zaten kullanıldı.");
-        }else{
-            log("❌ Geçersiz hile kodu.");
-        }
-    }
+// ==== HİLE ====
+document.addEventListener("keydown",e=>{
+ if(e.key==="Enter"){
+  let code=prompt("Hile kodunu gir:");
+  if(code==="kralgalerici20m"&&!cheatUsed){
+   money+=20000000; cheatUsed=true;
+   log("💣 HİLE AKTİF! 20.000.000 TL eklendi.");
+   update();
+  }else if(cheatUsed){log("❌ Hile zaten kullanıldı.");}
+  else{log("❌ Geçersiz kod.");}
+ }
 });
 
+// ==== RTE MODÜLÜ (VERGİ + AF) ====
+function rteGeliyor(){
+ let oran=Math.floor(Math.random()*11)+5; // %5-15
+ let kes=Math.floor(money*oran/100);
+ if(kes<=0) return;
+ money-=kes;
+ const soz=[
+  "🇹🇷 RTE: Galerici kardeşim, katkı payı zamanı.",
+  "🇹🇷 RTE: Büyük projeler için küçük bir destek.",
+  "🇹🇷 RTE: Hep birlikte büyüyoruz."
+ ];
+ log(`${soz[Math.floor(Math.random()*soz.length)]}`, "rte");
+ log(`🧾 Vergi kesildi: ${kes.toLocaleString("tr-TR")} TL (%${oran})`, "rte");
+
+ // %20 ihtimalle AF
+ if(Math.random()<0.2){
+  let iade=Math.floor(kes*0.3);
+  money+=iade;
+  log(`🕊️ Vergi affı! ${iade.toLocaleString("tr-TR")} TL iade.`, "rte");
+ }
+ update();
+}
+// Her 60 sn RTE gelsin
+setInterval(rteGeliyor,60000);
+
 // ==== BAŞLAT ====
-refresh();
-money += 1000;
-update();
+refresh(); update();
 </script>
 
 </body>

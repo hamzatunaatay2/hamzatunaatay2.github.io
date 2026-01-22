@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reis Galericilik: RTE Edition</title>
+    <title>Reis Galericilik: RTE Edition + Kumar</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -15,26 +15,27 @@
             flex-direction: column;
             align-items: center;
         }
-        /* Başlık ve Tema Değişikliği */
         h1 { color: #1abc9c; text-shadow: 2px 2px #000; letter-spacing: 2px; }
         .stats-bar {
             background: #2c3e50;
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             padding: 15px;
             border-radius: 10px;
             display: flex;
             justify-content: space-around;
             margin-bottom: 20px;
             border: 2px solid #1abc9c;
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: bold;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .container {
             display: flex;
             gap: 20px;
             width: 100%;
-            max-width: 1000px;
+            max-width: 1200px;
             flex-wrap: wrap;
         }
         .panel {
@@ -57,7 +58,6 @@
             align-items: center;
             border-left: 5px solid #bdc3c7;
         }
-        /* Makam Araçları İçin Özel Stil */
         .car-card.makam { 
             border-left: 8px solid #e74c3c; 
             background: #fdf2e9;
@@ -74,13 +74,13 @@
             transition: 0.2s;
         }
         .btn-buy { background-color: #27ae60; color: white; }
-        .btn-buy:hover { background-color: #2ecc71; }
         .btn-sell { background-color: #e67e22; color: white; }
-        .btn-sell:hover { background-color: #d35400; }
-        
+        .btn-gamble { background-color: #8e44ad; color: white; margin: 5px; width: 40%; }
+        .btn-upgrade { background-color: #f1c40f; color: #000; padding: 5px 10px; font-size: 0.8em; }
+
         #log-area {
             width: 100%;
-            max-width: 1000px;
+            max-width: 1200px;
             height: 120px;
             background: #000;
             color: #1abc9c;
@@ -90,9 +90,8 @@
             overflow-y: scroll;
             border: 1px solid #1abc9c;
         }
-        .clean { color: green; font-weight: bold; }
-        .damaged { color: red; font-weight: bold; }
         .special { color: #8e44ad; font-weight: bold; }
+        .gamble-box { text-align: center; background: #2c3e50; padding: 10px; border-radius: 10px; border: 1px solid #8e44ad; }
     </style>
 </head>
 <body>
@@ -100,9 +99,10 @@
     <h1>🇹🇷 REİS GALERİCİLİK: RTE EDITION 🇹🇷</h1>
 
     <div class="stats-bar">
-        <span id="money">Nakit: 500,000 TL</span>
-        <span id="inventory-count">Araçlar: 0/5</span>
-        <span id="reputation">İtibar: %10</span>
+        <span id="money">Nakit: 750,000 TL</span>
+        <span id="inventory-count">Araçlar: 0/6</span>
+        <span id="reputation">İtibar: %20</span>
+        <button class="btn btn-upgrade" onclick="upgradeGarage()">🏗️ Garajı Büyüt (<span id="upgrade-cost">250.000</span> TL)</button>
     </div>
 
     <div class="container">
@@ -116,19 +116,32 @@
             <h2>🏠 GARAJIM</h2>
             <div id="my-garage"></div>
         </div>
+
+        <div class="panel">
+            <h2>🎲 BEŞTEPE CASINO</h2>
+            <div class="gamble-box">
+                <p>Kaderini belirle Reis!</p>
+                <button class="btn btn-gamble" onclick="playGamble(50000)">50.000 TL Bas</button>
+                <button class="btn btn-gamble" onclick="playGamble(250000)">250.000 TL Bas</button>
+                <button class="btn btn-gamble" onclick="playGamble(1000000)">1 MİLYON TL Bas</button>
+                <button class="btn btn-gamble" style="background:#c0392b" onclick="playGamble('all')">HEPSİNİ BAS!</button>
+                <p style="font-size: 0.8em; color: #bdc3c7;">%50 Şans: Ya 2 katı, ya sıfır!</p>
+            </div>
+        </div>
     </div>
 
-    <div id="log-area">Sisteme hoşgeldin Reis. Yerli ve milli ticaret başlasın...</div>
+    <div id="log-area">Sisteme hoşgeldin Reis. Ticaret mi, kumar mı? Karar senin...</div>
 
     <script>
         // Oyun Değişkenleri
-        let money = 750000; // Başlangıç parası RTE Edition hatırına arttı
+        let money = 750000;
         let reputation = 20;
         let garage = [];
-        let maxGarage = 6; // Kapasite +1 arttı
+        let maxGarage = 6;
         let market = [];
+        let upgradeCost = 250000;
 
-        // Araç Veritabanı (RTE Edition Araçları Eklendi)
+        // Araç Veritabanı
         const carTypes = [
             { name: "Tofaş Şahin", basePrice: 200000, risk: 0.8 },
             { name: "Honda Civic (VTEC)", basePrice: 800000, risk: 0.4 },
@@ -150,10 +163,10 @@
             { text: "Pert Kayıtlı", val: 0.5 }
         ];
 
-        // Yardımcı Fonksiyonlar
         function log(msg) {
             const logArea = document.getElementById("log-area");
             logArea.innerHTML = `> ${msg}<br>` + logArea.innerHTML;
+            logArea.scrollTop = 0;
         }
 
         function formatMoney(amount) {
@@ -164,89 +177,99 @@
             document.getElementById("money").innerText = `Nakit: ${formatMoney(money)}`;
             document.getElementById("inventory-count").innerText = `Araçlar: ${garage.length}/${maxGarage}`;
             document.getElementById("reputation").innerText = `İtibar: %${reputation}`;
+            document.getElementById("upgrade-cost").innerText = upgradeCost.toLocaleString('tr-TR');
             
             renderMarket();
             renderGarage();
         }
 
-        // Piyasa Oluşturucu
+        // --- GARAJ UPGRADE ---
+        function upgradeGarage() {
+            if (money >= upgradeCost) {
+                money -= upgradeCost;
+                maxGarage += 2; // Her seferinde 2 slot ekler
+                upgradeCost *= 2; // Fiyat katlanır
+                log(`🏗️ Garaj genişletildi! Yeni kapasite: ${maxGarage}`);
+                updateUI();
+            } else {
+                log("❌ Garajı büyütmek için paran yetersiz Reis!");
+            }
+        }
+
+        // --- KUMAR SİSTEMİ ---
+        function playGamble(amount) {
+            let bet = amount === 'all' ? money : amount;
+
+            if (money <= 0 || money < bet) {
+                log("❌ Masaya koyacak paran yok, önce araba sat!");
+                return;
+            }
+
+            if (bet < 1000) {
+                log("❌ Bu kadar küçük paraya zar atmayız.");
+                return;
+            }
+
+            money -= bet;
+            log(`🎲 ${formatMoney(bet)} ortaya konuldu. Zar dönüyor...`);
+
+            setTimeout(() => {
+                if (Math.random() > 0.5) {
+                    let win = bet * 2;
+                    money += win;
+                    log(`💰 KAZANDIN! ${formatMoney(win)} geri aldın. Şansın yaver gitti.`);
+                } else {
+                    log(`💀 KAYBETTİN! ${formatMoney(bet)} uçtu gitti. Kısmet değilmiş...`);
+                }
+                updateUI();
+            }, 500);
+        }
+
         function generateCar() {
             const carBase = carTypes[Math.floor(Math.random() * carTypes.length)];
             const cond = conditions[Math.floor(Math.random() * conditions.length)];
-            
             let finalPrice = Math.floor(carBase.basePrice * cond.val * (0.9 + Math.random() * 0.2));
-            
             return {
                 id: Math.random().toString(36).substr(2, 9),
                 name: carBase.name,
                 condition: cond.text,
                 price: finalPrice,
-                isMakam: carBase.isMakam || false,
-                realValue: Math.floor(finalPrice * (1.1 + (reputation/500)))
+                isMakam: carBase.isMakam || false
             };
         }
 
         function refreshMarket() {
-            if (money < 1000) {
-                log("❗ Kasa boş Reis, yenileme yapamazsın!");
-                return;
-            }
+            if (money < 1000) { log("❗ Para yok."); return; }
             money -= 1000;
             market = [];
-            for(let i=0; i<4; i++) {
-                market.push(generateCar());
-            }
-            log("Piyasa yenilendi, yerli ve milli araçlar görücüye çıktı.");
+            for(let i=0; i<4; i++) market.push(generateCar());
+            log("Piyasa yenilendi.");
             updateUI();
         }
 
-        // Satın Alma Mantığı
         function buyCar(id) {
-            if (garage.length >= maxGarage) {
-                log("🚫 Garajda yer kalmadı! Konvoyu mu büyüteceksin?");
-                return;
-            }
-
+            if (garage.length >= maxGarage) { log("🚫 Garaj dolu!"); return; }
             const carIndex = market.findIndex(c => c.id === id);
             const car = market[carIndex];
-
             if (money >= car.price) {
                 money -= car.price;
                 garage.push(car);
                 market.splice(carIndex, 1);
-                log(`✅ ${car.name} garaja çekildi. Vatana millete hayırlı olsun.`);
+                log(`✅ ${car.name} alındı.`);
                 updateUI();
-            } else {
-                log("❌ Bütçe yetersiz Reis.");
-            }
+            } else { log("❌ Para yetersiz."); }
         }
 
-        // Satış Mantığı
         function sellCar(id) {
             const carIndex = garage.findIndex(c => c.id === id);
             const car = garage[carIndex];
-
-            let offerMultiplier = 0.85 + (Math.random() * 0.5) + (reputation / 150);
-            let offer = Math.floor(car.price * offerMultiplier);
-
-            let accept = confirm(`${car.name} için talip var.\n\nAlış Fiyatı: ${formatMoney(car.price)}\nVerilen Teklif: ${formatMoney(offer)}\n\nSatış Onaylansın mı?`);
-
-            if (accept) {
+            let offer = Math.floor(car.price * (0.85 + Math.random() * 0.6));
+            if (confirm(`${car.name} için teklif: ${formatMoney(offer)}. Satılsın mı?`)) {
                 money += offer;
-                let profit = offer - car.price;
-                
-                if (profit > 0) {
-                    reputation = Math.min(100, reputation + 3);
-                    log(`💰 ${car.name} satıldı. Kâr: ${formatMoney(profit)}. İtibarımız artıyor.`);
-                } else {
-                    reputation = Math.max(0, reputation - 2);
-                    log(`📉 ${car.name} zararına satıldı. Zarar: ${formatMoney(Math.abs(profit))}.`);
-                }
-
+                reputation = Math.min(100, reputation + (offer > car.price ? 2 : -1));
                 garage.splice(carIndex, 1);
+                log(`💰 Satıldı. Kâr/Zarar: ${formatMoney(offer - car.price)}`);
                 updateUI();
-            } else {
-                log(`Pazarlık masadan kalktı. ${car.name} hala bizde.`);
             }
         }
 
@@ -254,14 +277,8 @@
             const list = document.getElementById("market-list");
             list.innerHTML = "";
             market.forEach(car => {
-                const isMakamClass = car.isMakam ? 'makam' : '';
-                list.innerHTML += `
-                <div class="car-card ${isMakamClass}">
-                    <div class="car-info">
-                        <strong>${car.name}</strong><br>
-                        <span class="special">${car.condition}</span><br>
-                        Fiyat: ${formatMoney(car.price)}
-                    </div>
+                list.innerHTML += `<div class="car-card ${car.isMakam ? 'makam' : ''}">
+                    <div class="car-info"><strong>${car.name}</strong><br><span class="special">${car.condition}</span><br>${formatMoney(car.price)}</div>
                     <button class="btn btn-buy" onclick="buyCar('${car.id}')">AL</button>
                 </div>`;
             });
@@ -270,40 +287,28 @@
         function renderGarage() {
             const list = document.getElementById("my-garage");
             list.innerHTML = "";
-            if(garage.length === 0) list.innerHTML = "<p style='text-align:center; color:#7f8c8d'>Garaj boş, yerli otomobil bekleniyor...</p>";
-            
+            if(garage.length === 0) list.innerHTML = "Garaj boş.";
             garage.forEach(car => {
-                const isMakamClass = car.isMakam ? 'makam' : 'rare';
-                list.innerHTML += `
-                <div class="car-card ${isMakamClass}">
-                    <div class="car-info">
-                        <strong>${car.name}</strong><br>
-                        ${car.condition}<br>
-                        Maliyet: ${formatMoney(car.price)}
-                    </div>
+                list.innerHTML += `<div class="car-card ${car.isMakam ? 'makam' : 'rare'}">
+                    <div class="car-info"><strong>${car.name}</strong><br>${car.condition}<br>${formatMoney(car.price)}</div>
                     <button class="btn btn-sell" onclick="sellCar('${car.id}')">SAT</button>
                 </div>`;
             });
         }
 
-        // Gizli Kod (Hile)
-        document.addEventListener('keypress', function (e) {
+        // Hile
+        document.addEventListener('keypress', e => {
             if (e.key === 'r') {
-                let code = prompt("Gizli Kodu Gir:");
-                if (code === "togg2023") {
-                    money += 10000000;
-                    reputation = 100;
-                    log("💣 HİLE AKTİF: MERVE ABLANIZIN HEDİYESİ DEĞERİNİ BİLİN");
-                    updateUI();
+                if (prompt("Kod:") === "togg2023") {
+                    money += 10000000; reputation = 100;
+                    log("💣 HİLE AKTİF!"); updateUI();
                 }
             }
         });
 
-        // Oyunu Başlat
         refreshMarket();
         money += 1000;
         updateUI();
-
     </script>
 </body>
 </html>

@@ -1,1 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>RDR 2D: Halvior Special</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #3e2723; font-family: 'Courier New', Courier, monospace; }
+        #ui { position: absolute; top: 20px; left: 20px; color: #ffcc00; background: rgba(0,0,0,0.8); padding: 15px; border: 2px solid #ffcc00; border-radius: 10px; pointer-events: none; }
+        #dialog-box { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 80%; background: rgba(0,0,0,0.9); color: #fff; padding: 20px; border: 2px solid #8b0000; border-radius: 5px; display: none; text-align: center; font-size: 1.2em; }
+        #wasted { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #8b0000; font-size: 80px; font-weight: bold; display: none; text-shadow: 4px 4px #000; }
+        canvas { display: block; filter: sepia(0.5) contrast(1.2); }
+    </style>
+</head>
+<body>
 
+<div id="ui">
+    <strong style="font-size: 1.5em;">🤠 HALVIOR VAHŞİ BATIDA</strong><br>
+    💰 Altın: <span id="gold">50</span> | ❤️ Can: <span id="hp">100</span><br>
+    <div id="mission" style="color: #0f0; margin-top: 5px;">GÖREV: Dutch'ın boş planlarını dinle...</div>
+    <small style="color: #aaa;">WASD: Hareket | Mouse: Ateş | F: Racon/Konuş | E: At Bin/İn</small>
+</div>
+
+<div id="dialog-box"></div>
+<div id="wasted">TAHTALI KÖYÜ BOYLADIN</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let player = { x: 300, y: 300, angle: 0, onHorse: false, gold: 50, hp: 100 };
+let horse = { x: 450, y: 350, angle: 0, speed: 0 };
+let bullets = [];
+let camera = { x: 0, y: 0 };
+let keys = {};
+
+// Esprili Diyaloglar
+const npcDiyaloglari = [
+    "Dutch: 'Arthur! Bir planım var, sadece biraz daha mango ve sadakat!'",
+    "Arthur: 'Dutch, Tahiti dedin bizi Sivas'a getirdin be ya...'",
+    "Şerif: 'Oğlum Halvior, yine mi sen? Git başka kasabada racon kes!'",
+    "At: '(Sana öyle bir bakıyor ki sanki 'Binme artık üstüme' diyor...)'",
+    "Haydut: 'Paraları sökül yoksa seni 2D grafiklere gömerim!'"
+];
+
+window.onkeydown = e => { 
+    keys[e.code] = true;
+    if(e.code === 'KeyF') konustur();
+    if(e.code === 'KeyE') atBinIn();
+};
+window.onkeyup = e => keys[e.code] = false;
+
+function konustur() {
+    const box = document.getElementById('dialog-box');
+    box.innerText = npcDiyaloglari[Math.floor(Math.random() * npcDiyaloglari.length)];
+    box.style.display = 'block';
+    setTimeout(() => box.style.display = 'none', 3500);
+}
+
+function atBinIn() {
+    let d = Math.hypot(player.x - horse.x, player.y - horse.y);
+    if(d < 60) player.onHorse = !player.onHorse;
+}
+
+function update() {
+    let s = player.onHorse ? 7 : 4;
+    if(keys['KeyW']) player.y -= s;
+    if(keys['KeyS']) player.y += s;
+    if(keys['KeyA']) player.x -= s;
+    if(keys['KeyD']) player.x += s;
+
+    if(player.onHorse) { horse.x = player.x; horse.y = player.y; }
+
+    camera.x = player.x - canvas.width/2;
+    camera.y = player.y - canvas.height/2;
+}
+
+function draw() {
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.fillStyle = "#d2b48c";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.translate(-camera.x, -camera.y);
+
+    // Basit Yer Çizgileri
+    ctx.strokeStyle = "#8b4513";
+    for(let i=0; i<2000; i+=200) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 2000); ctx.stroke();
+    }
+
+    // AT
+    ctx.fillStyle = "#5d4037";
+    ctx.fillRect(horse.x - 25, horse.y - 15, 50, 30);
+    ctx.fillStyle = "#000"; ctx.fillRect(horse.x + 20, horse.y - 10, 10, 10); // Kafa
+
+    // OYUNCU
+    if(!player.onHorse) {
+        ctx.fillStyle = "#000"; // Şapka
+        ctx.beginPath(); ctx.arc(player.x, player.y, 15, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#8b0000"; ctx.fillRect(player.x - 5, player.y - 5, 10, 10);
+    }
+
+    update();
+    requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>

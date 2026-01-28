@@ -2,120 +2,148 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>GTA 7 - Alpha Version</title>
+    <title>GTA 7 - 2D Open World</title>
     <style>
-        body {
-            background-color: #1a1a1a;
-            color: white;
-            font-family: 'Arial', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
+        body { margin: 0; background: #222; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
+        canvas { display: block; background: #333; margin: 0 auto; box-shadow: 0 0 20px #000; }
+        #ui {
+            position: absolute; top: 20px; left: 20px; color: white;
+            text-shadow: 2px 2px #000; pointer-events: none;
         }
-
-        #hud {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            text-align: right;
-        }
-
-        .stat {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px #000;
-        }
-
-        #money { color: #2ecc71; }
-        #wanted { color: #f1c40f; letter-spacing: 5px; }
-
-        #game-screen {
-            width: 80%;
-            height: 60%;
-            border: 5px solid #333;
-            background: url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=1000') center/cover;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            padding-bottom: 20px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
-        }
-
-        .btn {
-            background-color: #e74c3c;
-            border: none;
-            color: white;
-            padding: 15px 32px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 0 10px;
-            border-radius: 5px;
-            transition: 0.3s;
-        }
-
-        .btn:hover { background-color: #c0392b; transform: scale(1.1); }
-
-        #log {
-            margin-top: 20px;
-            color: #bdc3c7;
-            font-style: italic;
-        }
+        .wanted { color: #f1c40f; font-size: 30px; letter-spacing: 5px; }
+        .instructions { position: absolute; bottom: 20px; left: 20px; color: #aaa; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div id="hud">
-        <div id="money" class="stat">$0</div>
-        <div id="wanted" class="stat"></div>
-    </div>
+<div id="ui">
+    <div id="money" style="color: #2ecc71; font-size: 24px;">PARA: $0</div>
+    <div id="wanted" class="wanted"></div>
+    <div id="status" style="margin-top: 10px;">Yürüyorsun...</div>
+</div>
 
-    <div id="game-screen">
-        <button class="btn" onclick="action('car')">Araba Çal</button>
-        <button class="btn" onclick="action('rob')">Banka Soy</button>
-        <button class="btn" onclick="reset()">Teslim Ol</button>
-    </div>
+<div class="instructions">
+    WASD - Hareket | <b>E - Arabaya Bin/İn</b> | R - Oyunu Sıfırla
+</div>
 
-    <div id="log">GTA 7: Neo-İstanbul'a hoş geldin, evlat.</div>
+<canvas id="gameCanvas"></canvas>
 
-    <script>
-        let money = 0;
-        let stars = "";
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-        function action(type) {
-            const log = document.getElementById('log');
-            if(type === 'car') {
-                money += 500;
-                log.innerText = "Lüks bir spor araba çaldın ve galericiye sattın!";
-                addStar();
-            } else if(type === 'rob') {
-                money += 5000;
-                log.innerText = "Merkez bankasını patlattın! Kaç kaç kaç!";
-                addStar();
-                addStar();
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// Oyun Durumu
+let player = { x: 100, y: 100, w: 20, h: 20, speed: 4, color: "#e74c3c", inCar: false };
+let car = { x: 300, y: 300, w: 50, h: 30, color: "#f1c40f", speed: 8, active: false };
+let cops = [];
+let money = 0;
+let wantedStars = 0;
+let keys = {};
+
+// Kontroller
+window.addEventListener("keydown", e => keys[e.code] = true);
+window.addEventListener("keyup", e => keys[e.code] = false);
+window.addEventListener("keydown", e => {
+    if(e.code === 'KeyE') toggleCar();
+    if(e.code === 'KeyR') location.reload();
+});
+
+function toggleCar() {
+    let dist = Math.hypot(player.x - car.x, player.y - car.y);
+    if (!player.inCar && dist < 50) {
+        player.inCar = true;
+        document.getElementById("status").innerText = "Araba sürüyorsun!";
+        if(wantedStars < 1) wantedStars = 1; // Araba çalmak suçtur knk
+    } else if (player.inCar) {
+        player.inCar = false;
+        player.x = car.x + 60;
+        document.getElementById("status").innerText = "Yürüyorsun...";
+    }
+    updateUI();
+}
+
+function spawnCop() {
+    cops.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        w: 20, h: 20, color: "#3498db", speed: 2 + wantedStars
+    });
+}
+
+function updateUI() {
+    document.getElementById("money").innerText = `PARA: $${money}`;
+    document.getElementById("wanted").innerText = "★".repeat(wantedStars);
+}
+
+function update() {
+    // Hareket Mantığı
+    let currentSpeed = player.inCar ? car.speed : player.speed;
+    let target = player.inCar ? car : player;
+
+    if (keys['KeyW']) target.y -= currentSpeed;
+    if (keys['KeyS']) target.y += currentSpeed;
+    if (keys['KeyA']) target.x -= currentSpeed;
+    if (keys['KeyD']) target.x += currentSpeed;
+
+    if (player.inCar) {
+        player.x = car.x;
+        player.y = car.y;
+    }
+
+    // Polis Takibi
+    if (wantedStars > 0) {
+        if (Math.random() < 0.01 && cops.length < wantedStars * 2) spawnCop();
+        
+        cops.forEach((cop, index) => {
+            if (cop.x < target.x) cop.x += cop.speed;
+            else cop.x -= cop.speed;
+            if (cop.y < target.y) cop.y += cop.speed;
+            else cop.y -= cop.speed;
+
+            // Yakalanma Kontrolü
+            let dist = Math.hypot(target.x - cop.x, target.y - cop.y);
+            if (dist < 20) {
+                alert("YAKALANDIN! R'ye basıp kefalet öde.");
+                location.reload();
             }
-            updateHUD();
-        }
+        });
+    }
+}
 
-        function addStar() {
-            if(stars.length < 5) stars += "★";
-        }
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        function updateHUD() {
-            document.getElementById('money').innerText = "$" + money;
-            document.getElementById('wanted').innerText = stars;
-        }
+    // Yollar (Basit çizim)
+    ctx.fillStyle = "#444";
+    ctx.fillRect(0, canvas.height/2 - 50, canvas.width, 100);
 
-        function reset() {
-            money = 0;
-            stars = "";
-            document.getElementById('log').innerText = "Hapisten yeni çıktın, temiz bir sayfa açtın.";
-            updateHUD();
-        }
-    </script>
+    // Araba
+    if (!player.inCar) {
+        ctx.fillStyle = car.color;
+        ctx.fillRect(car.x, car.y, car.w, car.h);
+    }
+
+    // Oyuncu
+    ctx.fillStyle = player.inCar ? "transparent" : player.color;
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+
+    // Polisler
+    cops.forEach(cop => {
+        ctx.fillStyle = cop.color;
+        ctx.fillRect(cop.x, cop.y, cop.w, cop.h);
+        // Siren efekti
+        ctx.fillStyle = Math.random() > 0.5 ? "red" : "blue";
+        ctx.fillRect(cop.x, cop.y - 5, 5, 5);
+    });
+
+    update();
+    requestAnimationFrame(draw);
+}
+
+draw();
+</script>
 </body>
 </html>

@@ -1,84 +1,74 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>Basit Yapay Zekâ</title>
-<style>
-body {
-  background:#111;
-  color:#0f0;
-  font-family: Consolas, monospace;
-  padding:20px;
-}
-#box {
-  border:1px solid #0f0;
-  padding:15px;
-  max-width:600px;
-}
-button {
-  margin:5px;
-  padding:8px 14px;
-  background:#0f0;
-  color:#000;
-  border:none;
-  cursor:pointer;
-  font-weight:bold;
-}
-#log {
-  margin-top:15px;
-  min-height:120px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Lite - Basit YZ</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #chat-container { width: 400px; height: 500px; background: #1e1e1e; border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        #chat-window { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { padding: 10px 15px; border-radius: 10px; max-width: 80%; font-size: 14px; }
+        .user-msg { background: #007bff; align-self: flex-end; }
+        .ai-msg { background: #333; align-self: flex-start; }
+        #input-area { display: flex; padding: 15px; background: #252525; }
+        input { flex: 1; padding: 10px; border: none; border-radius: 5px; outline: none; background: #333; color: white; }
+        button { margin-left: 10px; padding: 10px 15px; border: none; border-radius: 5px; background: #007bff; color: white; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #0056b3; }
+    </style>
 </head>
-
 <body>
 
-<div id="box">
-  <h2>🧠 Yapay Zekâ Çekirdeği</h2>
-
-  <p>Seçim yap:</p>
-  <button onclick="choose(1)">1</button>
-  <button onclick="choose(2)">2</button>
-  <button onclick="choose(3)">3</button>
-  <button onclick="choose(4)">4</button>
-
-  <div id="log"></div>
+<div id="chat-container">
+    <div id="chat-window">
+        <div class="message ai-msg">Selam knk! Ben senin yerel yapay zekanım. Bana bir şeyler yaz!</div>
+    </div>
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="Bir şeyler yaz..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()">Gönder</button>
+    </div>
 </div>
 
 <script>
-// ================== BEYİN ==================
-let brain = {
-  kelimeSayisi: 900000000, // temsili 😄
-  hafiza: [],
-  seviye: 1,
-};
+    const responses = {
+        "selam": "Selam knk, naber?",
+        "merhaba": "Merhaba! Sana nasıl yardımcı olabilirim?",
+        "nasılsın": "İyiyim valla, devrelerim tıkır tıkır çalışıyor. Sen nasılsın?",
+        "adın ne": "Benim bir adım yok ama istersen bana 'Hızlı Bot' diyebilirsin.",
+        "yapay zeka nedir": "Yapay zeka, makinelerin insan gibi düşünmesini sağlayan teknolojidir knk.",
+        "kod yaz": "Zaten şu an bir kodun içindeyim, farkında mısın? 😎",
+        "bay bay": "Görüşürüz knk, kendine iyi bak!",
+        "varsayılan": "Bunu tam anlayamadım ama kulağa ilginç geliyor!"
+    };
 
-// cevap havuzu
-const responses = {
-  1: ["Analiz yapıyorum.", "Veri işleniyor.", "Mantık kuruyorum."],
-  2: ["Öğreniyorum.", "Hafızaya ekledim.", "Beyin gelişiyor."],
-  3: ["Karar veriyorum.", "Olasılık hesapladım.", "Sonuç ürettim."],
-  4: ["Yeni bağlantı kurdum.", "Zeka seviyesi artıyor.", "Beyin optimize edildi."]
-};
+    function sendMessage() {
+        const input = document.getElementById("user-input");
+        const chatWindow = document.getElementById("chat-window");
+        const text = input.value.trim().toLowerCase();
 
-function choose(n) {
-  let cevap = random(responses[n]);
-  brain.hafiza.push(n);
-  brain.seviye++;
+        if (text === "") return;
 
-  document.getElementById("log").innerHTML = `
-    <p>➡️ Seçim: ${n}</p>
-    <p>🤖 AI: ${cevap}</p>
-    <p>🧠 Seviye: ${brain.seviye}</p>
-    <p>📚 Kelime Havuzu: ${brain.kelimeSayisi.toLocaleString()}</p>
-    <p>💾 Hafıza Uzunluğu: ${brain.hafiza.length}</p>
-  `;
-}
+        // Kullanıcı mesajını ekle
+        chatWindow.innerHTML += `<div class="message user-msg">${input.value}</div>`;
+        input.value = "";
 
-// yardımcı
-function random(arr){
-  return arr[Math.floor(Math.random()*arr.length)];
-}
+        // Yapay zeka cevabı
+        setTimeout(() => {
+            let reply = responses["varsayılan"];
+            for (let key in responses) {
+                if (text.includes(key)) {
+                    reply = responses[key];
+                    break;
+                }
+            }
+            chatWindow.innerHTML += `<div class="message ai-msg">${reply}</div>`;
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }, 500);
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') sendMessage();
+    }
 </script>
 
 </body>

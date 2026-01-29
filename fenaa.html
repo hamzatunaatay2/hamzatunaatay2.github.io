@@ -3,136 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halvior AI - Coder Edition</title>
+    <title>Halvior AI - Infinite Brain</title>
     <style>
-        :root { --bg: #050507; --panel: #111114; --accent: #00ff9d; --text: #e0e0e0; --error: #ff4d4d; }
-        body { font-family: 'Fira Code', 'Courier New', monospace; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        
-        #app { width: 95%; max-width: 700px; height: 90vh; background: var(--panel); border: 1px solid #222; border-radius: 15px; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0, 255, 157, 0.1); }
-        
-        .header { padding: 15px 25px; background: #1a1a1e; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .header h2 { margin: 0; font-size: 1rem; color: var(--accent); letter-spacing: 3px; }
-        .status { font-size: 10px; color: #555; }
-
-        #chat { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scrollbar-width: thin; scrollbar-color: #333 transparent; }
-        .msg { padding: 14px 18px; border-radius: 8px; max-width: 85%; line-height: 1.6; font-size: 14px; animation: slide 0.2s ease-out; }
-        @keyframes slide { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-        
-        .u { background: #1c1c22; align-self: flex-end; border-right: 3px solid var(--accent); color: #fff; }
-        .a { background: #16161a; align-self: flex-start; border-left: 3px solid var(--accent); position: relative; }
-        
-        /* Kod Alanı */
-        pre { background: #000; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 10px 0; border: 1px solid #333; }
-        code { color: #82aaff; }
-        .copy-btn { position: absolute; top: 10px; right: 10px; background: var(--accent); color: #000; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 10px; font-weight: bold; }
-
-        .controls { padding: 20px; background: #1a1a1e; display: flex; gap: 10px; }
-        input { flex: 1; background: #000; border: 1px solid #333; padding: 12px; color: var(--accent); border-radius: 5px; outline: none; }
-        .btn { padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-send { background: var(--accent); color: #000; }
-        .btn-mic { background: #222; color: #fff; font-size: 1.2rem; }
-        .mic-active { background: var(--error) !important; box-shadow: 0 0 15px var(--error); }
+        :root { --bg: #030303; --panel: #0a0a0c; --accent: #00ffcc; --text: #e0e0e0; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #app { width: 95%; max-width: 800px; height: 90vh; background: var(--panel); border: 1px solid #1a1a1a; border-radius: 20px; display: flex; flex-direction: column; box-shadow: 0 0 100px rgba(0, 255, 204, 0.05); }
+        .header { padding: 20px; border-bottom: 1px solid #1a1a1a; text-align: center; }
+        .header h1 { margin: 0; font-size: 1.2rem; color: var(--accent); letter-spacing: 5px; }
+        #chat { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
+        .m { padding: 15px 20px; border-radius: 12px; max-width: 85%; line-height: 1.6; font-size: 15px; border: 1px solid transparent; }
+        .u { background: #111; align-self: flex-end; border-color: #222; }
+        .a { background: #070707; align-self: flex-start; border-color: var(--accent); color: #fff; }
+        pre { background: #000; padding: 15px; border-radius: 8px; border: 1px solid #333; overflow-x: auto; margin-top: 10px; }
+        code { color: #50fa7b; }
+        .controls { padding: 20px; background: #0a0a0c; display: flex; gap: 10px; border-top: 1px solid #1a1a1a; }
+        input { flex: 1; background: #000; border: 1px solid #333; padding: 15px; color: var(--accent); border-radius: 10px; outline: none; }
+        button { background: var(--accent); color: #000; border: none; padding: 10px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div class="header">
-        <h2>HALVIOR_AI // CODER_EDITION</h2>
-        <div class="status">V5.0_STABLE</div>
-    </div>
+    <div class="header"><h1>HALVIOR INFINITE BRAIN</h1></div>
     <div id="chat"></div>
     <div class="controls">
-        <button id="mic" class="btn btn-mic" onclick="listen()">🎤</button>
-        <input type="text" id="inp" placeholder="Kod iste veya bir şey sor..." onkeypress="if(event.key=='Enter') execute()">
-        <button class="btn btn-send" onclick="execute()">RUN</button>
+        <input type="text" id="inp" placeholder="Evrenin sırlarını sor..." onkeypress="if(event.key=='Enter') ask()">
+        <button onclick="ask()">SORGULA</button>
     </div>
 </div>
 
 <script>
     const chat = document.getElementById("chat");
     const inp = document.getElementById("inp");
-    let lastInput = "";
-    let spamCount = 0;
 
-    const codeVault = {
-        "html": "<!DOCTYPE html>\n<html>\n<body>\n <h1>Halvior AI</h1>\n <p>Kod basarıyla olusturuldu.</p>\n</body>\n</html>",
-        "css": "body {\n background: #000;\n color: #0f0;\n font-family: monospace;\n}",
-        "js": "function helloWorld() {\n  console.log('Halvior AI aktif!');\n  alert('Merhaba Dünya');\n}",
-        "flex": "display: flex;\njustify-content: center;\nalign-items: center;",
-        "button": "<button style='background:#00ff9d; color:#000; border:none; padding:10px;'>Halvior Buton</button>",
-        "form": "<form>\n <input type='text' placeholder='Adınız'>\n <button type='submit'>Gönder</button>\n</form>"
+    // --- HALVIOR'UN GENİŞLETİLMİŞ ÖN BİLGİ SETİ (İÇ BEYİN) ---
+    const megaBrain = {
+        "uzay": "Evren, yaklaşık 13.8 milyar yıl önce Big Bang ile başladı. Milyarlarca galaksi ve trilyonlarca yıldız barındırır.",
+        "karadelik": "Işığın bile kaçamadığı kadar güçlü çekim alanına sahip olan gök cisimleridir.",
+        "atatürk": "Mustafa Kemal Atatürk, Türkiye Cumhuriyeti'nin kurucusu ve ilk cumhurbaşkanıdır. 1881-1938 yılları arasında yaşamıştır.",
+        "evrim": "Canlı türlerinin nesiller boyunca genetik değişim geçirerek bugünkü hallerine gelme sürecidir.",
+        "bitcoin": "2009'da Satoshi Nakamoto tarafından icat edilen ilk merkeziyetsiz kripto para birimidir.",
+        "felsefe": "Varlık, bilgi, değer ve akıl gibi konular üzerine derin düşünme ve sorgulama sanatıdır.",
+        "teknoloji": "Bilimin pratik amaçlar, özellikle endüstriyel ve ticari alanlarda uygulanmasıdır.",
+        "din": "Genellikle doğaüstü bir güce inanmayı ve belirli ibadetleri içeren inanç sistemidir.",
+        "ölüm": "Canlıların biyolojik fonksiyonlarının kalıcı olarak durmasıdır.",
+        "aşk": "İnsanlar arasındaki güçlü duygusal bağ ve derin bağlılık hissidir."
     };
 
-    function speak(txt) {
-        window.speechSynthesis.cancel();
-        const s = new SpeechSynthesisUtterance(txt);
-        s.lang = 'tr-TR';
-        window.speechSynthesis.speak(s);
-    }
+    const coderBrain = {
+        "python": "print('Merhaba Dünya')",
+        "html": "<html><body><h1>Halvior</h1></body></html>",
+        "css": "body { background: black; color: cyan; }",
+        "javascript": "console.log('Halvior AI Code');"
+    };
 
-    function listen() {
-        if (!('webkitSpeechRecognition' in window)) return alert("Tarayıcı desteklemiyor.");
-        const r = new webkitSpeechRecognition();
-        r.lang = 'tr-TR';
-        r.onstart = () => document.getElementById("mic").classList.add("mic-active");
-        r.onend = () => document.getElementById("mic").classList.remove("mic-active");
-        r.onresult = (e) => { inp.value = e.results[0][0].transcript; execute(); };
-        r.start();
-    }
-
-    async function execute() {
+    async function ask() {
         const val = inp.value.trim();
-        if (!val) return;
-
-        // --- ANTI-SPAM LOGIC ---
-        if(val.toLowerCase() === lastInput.toLowerCase()) {
-            spamCount++;
-            if(spamCount >= 2) {
-                addMsg("SPAM TESPİT EDİLDİ: Aynı komutu tekrarlamayı bırak knk.", 'a');
-                speak("Spam yapma knk.");
-                return;
-            }
-        } else {
-            spamCount = 0;
-            lastInput = val;
-        }
-
+        if(!val) return;
         addMsg(val, 'u');
         inp.value = "";
 
         const low = val.toLowerCase();
+        let reply = "";
 
-        // --- CODER LOGIC ---
-        let codeFound = false;
-        for (let key in codeVault) {
-            if (low.includes(key) && (low.includes("kod") || low.includes("yaz"))) {
-                addCode(key.toUpperCase(), codeVault[key]);
-                speak(`${key} kodu hazırlandı.`);
-                codeFound = true;
+        // 1. Aşama: Kod Sorgusu mu?
+        for(let key in coderBrain) {
+            if(low.includes(key) && low.includes("kod")) {
+                addCode(key.toUpperCase(), coderBrain[key]);
+                return;
+            }
+        }
+
+        // 2. Aşama: İç Beyin (Hızlı Bilgi) Sorgusu
+        for(let key in megaBrain) {
+            if(low.includes(key)) {
+                reply = megaBrain[key];
                 break;
             }
         }
-        if (codeFound) return;
 
-        // --- NORMAL CHAT & WIKI ---
-        if (low.includes("selam") || low.includes("merhaba")) {
-            addMsg("Selam! Ben Halvior, kod kütüphanem ve internet erişimimle emrindeyim.", 'a');
-            speak("Selam dostum.");
-        } else if (low.includes("nedir") || low.includes("kim")) {
-            const q = low.replace("nedir","").replace("kim","").trim();
-            addMsg("Halvior veritabanında sorgulanıyor...", 'a');
-            const data = await fetch(`https://tr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`).then(r => r.json());
-            updateLast(data.extract || "Veri bulunamadı.");
-            speak(data.extract ? "İstediğin bilgiyi buldum." : "Bunu bilmiyorum.");
-        } else {
-            addMsg("Anlaşılamayan komut. Kod yazdırmak için 'html kod yaz' gibi bir şey dene.", 'a');
+        // 3. Aşama: Bilgi Bulunamazsa Wikipedia'ya Bağlan
+        if(!reply) {
+            addMsg("Halvior derin ağlarda tarama yapıyor...", 'a');
+            const data = await fetch(`https://tr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(val)}`).then(r => r.json());
+            if(data.extract) {
+                updateLast(data.extract);
+                return;
+            }
+            reply = "Maalesef bu konuda yeterli veri toplayamadım knk, daha spesifik bir kelime dener misin?";
         }
+
+        setTimeout(() => addMsg(reply, 'a'), 500);
     }
 
     function addMsg(t, c) {
         const d = document.createElement("div");
-        d.className = `msg ${c}`;
+        d.className = `m ${c}`;
         d.innerHTML = t;
         chat.appendChild(d);
         chat.scrollTop = chat.scrollHeight;
@@ -140,8 +106,8 @@
 
     function addCode(title, code) {
         const d = document.createElement("div");
-        d.className = "msg a";
-        d.innerHTML = `<strong>${title} Kaynak Kodu:</strong><pre><button class="copy-btn" onclick="copy(this)">KOPYALA</button><code>${code.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</code></pre>`;
+        d.className = "m a";
+        d.innerHTML = `<b>${title} Örneği:</b><pre><code>${code.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</code></pre>`;
         chat.appendChild(d);
         chat.scrollTop = chat.scrollHeight;
     }
@@ -149,16 +115,7 @@
     function updateLast(t) {
         const bots = document.querySelectorAll(".a");
         bots[bots.length - 1].innerText = t;
-        chat.scrollTop = chat.scrollHeight;
     }
-
-    function copy(btn) {
-        navigator.clipboard.writeText(btn.nextElementSibling.innerText);
-        btn.innerText = "ALINDI!";
-        setTimeout(() => btn.innerText = "KOPYALA", 2000);
-    }
-
-    window.onload = () => addMsg("<b>HALVIOR_AI // SİSTEM_AKTİF.</b><br>Bana 'html kod yaz' veya 'flex nedir' diye sorabilirsin.", 'a');
 </script>
 
 </body>

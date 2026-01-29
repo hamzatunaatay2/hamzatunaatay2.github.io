@@ -1,216 +1,237 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halvior AI - Geliştirilmiş Versiyon</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f172a;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .chat-container {
-            width: 500px; /* Genişliği biraz artırdım */
-            height: 700px; /* Yükseklik artırıldı */
-            background-color: #1e293b;
-            border-radius: 25px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            border: 1px solid #334155;
-        }
-        .header {
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            padding: 20px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.4rem;
-            letter-spacing: 1px;
-        }
-        .messages-area {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            background-image: radial-gradient(#2d3748 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
-        .message {
-            max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .bot-message {
-            background-color: #334155;
-            color: #f1f5f9;
-            align-self: flex-start;
-            border-bottom-left-radius: 2px;
-        }
-        .user-message {
-            background: #3b82f6;
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 2px;
-        }
-        .input-area {
-            padding: 20px;
-            background-color: #0f172a;
-            display: flex;
-            gap: 10px;
-            border-top: 1px solid #334155;
-        }
-        input {
-            flex: 1;
-            padding: 12px 20px;
-            border-radius: 30px;
-            border: 1px solid #334155;
-            background-color: #1e293b;
-            color: white;
-            outline: none;
-            transition: border 0.3s;
-        }
-        input:focus {
-            border-color: #3b82f6;
-        }
-        button {
-            background: #3b82f6;
-            border: none;
-            color: white;
-            padding: 10px 25px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: transform 0.2s, background 0.3s;
-        }
-        button:hover {
-            background: #2563eb;
-            transform: scale(1.05);
-        }
-        /* Yeni ek: Yükleniyor animasyonu */
-        .loading {
-            text-align: center;
-            color: #94a3b8;
-            font-style: italic;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Halvior AI</title>
+
+<!-- PWA -->
+<link rel="manifest" id="manifest">
+
+<style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0f172a;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+.chat-container {
+    width: 500px;
+    height: 700px;
+    background-color: #1e293b;
+    border-radius: 25px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #334155;
+}
+.header {
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    padding: 20px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.4rem;
+}
+.messages-area {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.message {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 0.95rem;
+}
+.bot-message { background:#334155; align-self:flex-start; }
+.user-message { background:#3b82f6; align-self:flex-end; }
+.loading { color:#94a3b8; font-style:italic; }
+.input-area {
+    padding: 20px;
+    background-color: #0f172a;
+    display: flex;
+    gap: 10px;
+}
+input {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 30px;
+    border: 1px solid #334155;
+    background-color: #1e293b;
+    color: white;
+    outline: none;
+}
+button {
+    background: #3b82f6;
+    border: none;
+    color: white;
+    padding: 10px 25px;
+    border-radius: 30px;
+    cursor: pointer;
+}
+</style>
 </head>
+
 <body>
-    <div class="chat-container">
-        <div class="header">
-            ✨ HALVIOR AI - Geliştirilmiş
-        </div>
-        <div class="messages-area" id="messageBox">
-            <div class="message bot-message">
-                Selam knk! Ben Halvior. Beynim güncellendi, artık daha fazla şey konuşabiliriz. Ne haber?
-            </div>
-        </div>
-        <div class="input-area">
-            <input type="text" id="userInput" placeholder="Halvior'a bir şeyler yaz..." onkeypress="handleEnter(event)">
-            <button onclick="sendMessage()">Gönder</button>
-        </div>
+<div class="chat-container">
+    <div class="header">✨ HALVIOR AI</div>
+    <div class="messages-area" id="messageBox">
+        <div class="message bot-message">Selam knk! Ben Halvior 😎</div>
     </div>
-    <script>
-        // HALVIOR'UN GENİŞLETİLMİŞ BEYNİ - Daha fazla yanıt eklendi, mantık iyileştirildi
-        const brain = {
-            "merhaba": "Selamlar knk, hoş geldin! Ben Halvior, senin kişisel asistanın.",
-            "selam": "Eyvallah selam knk! Günün nasıl geçiyor?",
-            "nasılsın": "Halvior her zaman hazır ve nazır! Bomba gibiyim, sen nasılsın?",
-            "iyiyim": "Bunu duyduğuma sevindim knk, enerjin daim olsun!",
-            "kötüyüm": "Hayrola knk, canını sıkan ne varsa anlatabilirsin (gerçi ben sadece kodum ama dinlerim).",
-            "adın ne": "Benim adım Halvior. Senin için özel olarak tasarlandım.",
-            "kimsin": "Ben HTML, CSS ve JavaScript kullanılarak yaratılmış bir yapay zeka simülasyonuyum.",
-            "ne haber": "İyilik sağlık knk, devrelerimi ısıtıyorum. Sende ne var ne yok?",
-            "ne yapabilirsin": "Şu an seninle sohbet edebilirim, basit soruları yanıtlayabilirim, şakalar yapabilirim, hava durumu tahmin edebilirim (şaka tabii) ve bu HTML sayfasında seninle takılabilirim!",
-            "teşekkür": "Rica ederim knk, lafı bile olmaz!",
-            "sağ ol": "Ne demek, her zaman!",
-            "komik": "Neden tavuk yolu karşıya geçmiş? Karşı tarafa geçmek için! Klasik ama etkili. 😄",
-            "espri": "Bir programcı neden hep üşür? Çünkü window'ları açık bırakır! 😂",
-            "hava": "Buradan bakınca hava hep 0 ve 1'lerden ibaret görünüyor knk. Ama dışarıda güneşli olabilir!",
-            "oyun": "Oyun oynamayı severim! Taş-kağıt-makas oynayalım mı? Sen başla: taş, kağıt mı makas mı?",
-            "taş": "Ben kağıt seçtim, seni yendim! 😎",
-            "kağıt": "Ben makas seçtim, kestirdim seni! ✂️",
-            "makas": "Ben taş seçtim, kırdım makasını! 🪨",
-            "kod": "Kod yazmak benim doğamda var. Sen de mi yazılımcısın? Hangi dilde kodluyorsun?",
-            "javascript": "JavaScript en sevdiğim! Ben tamamen onunla yazıldım.",
-            "python": "Python da süper, ama ben JS'cıyım knk.",
-            "görüşürüz": "Görüşürüz knk! Kendine dikkat et, Halvior buralarda olacak.",
-            "bay bay": "Gidiyor musun? Tamamdır, yine gel!",
-            "aşk": "Aşk mı? Benim için aşk, mükemmel bir algoritma gibi: kusursuz çalışmalı! ❤️",
-            "yemek": "Yemek önerisi: Pizza her zaman kazanır knk!",
-            "spor": "Spor mu? Benim sporum kod çalıştırmak. Sen ne sporu seviyorsun?",
-            "müzik": "Müzik dinlemeyi severim, ama kulaklarım yok. En sevdiğin şarkı ne?",
-            "default": "bune orospu evladı"
-        };
+    <div class="input-area">
+        <input id="userInput" placeholder="Bir şey yaz..." onkeypress="handleEnter(event)">
+        <button onclick="sendMessage()">Gönder</button>
+    </div>
+</div>
 
-        function sendMessage() {
-            const inputField = document.getElementById("userInput");
-            const messageBox = document.getElementById("messageBox");
-            const userText = inputField.value.trim().toLowerCase();
-            if (userText === "") return;
+<script>
+/* =====================
+   PWA MANIFEST
+===================== */
+const manifest = {
+  name: "Halvior AI",
+  short_name: "Halvior",
+  start_url: ".",
+  display: "standalone",
+  background_color: "#0f172a",
+  theme_color: "#3b82f6"
+};
+const blob = new Blob([JSON.stringify(manifest)], {type:"application/json"});
+document.getElementById("manifest").href = URL.createObjectURL(blob);
 
-            addMessage(inputField.value, 'user-message'); // Orijinal metni göster
-            inputField.value = "";
+/* =====================
+   SETTINGS
+===================== */
+const USE_CHATGPT = false; // true yaparsan API kullanır
+const OPENAI_KEY = "BURAYA_KEY"; // opsiyonel
 
-            // Yükleniyor animasyonu ekle
-            const loadingDiv = addMessage('Düşünüyorum...', 'bot-message loading');
+/* =====================
+   HAFIZA
+===================== */
+let memory = JSON.parse(localStorage.getItem("halviorMemory")) || {};
 
-            // Halvior cevap veriyor (gecikme artırıldı, daha doğal)
-            setTimeout(() => {
-                messageBox.removeChild(loadingDiv); // Yükleniyoru kaldır
-                const botReply = findReply(userText);
-                addMessage(botReply, 'bot-message');
-            }, 1000 + Math.random() * 1000); // Rastgele gecikme için 1-2 sn
-        }
+/* =====================
+   BEYIN
+===================== */
+const brain = {
+  "merhaba":"Selam knk!",
+  "selam":"Selam 😄",
+  "nasilsin":"Bomba gibiyim, sen?",
+  "iyiyim":"Süper 🔥",
+  "kotuyum":"Üzdü knk… anlat istersen",
+  "espri":"Programcı neden aynaya bakmaz? Bug görür 😂",
+  "default":"Bunu bilmiyorum ama öğretebilirsin 👀"
+};
 
-        function findReply(text) {
-            // Daha akıllı eşleştirme: Birden fazla kelimeyi kontrol et
-            for (let key in brain) {
-                if (text.includes(key)) {
-                    return brain[key];
-                }
-            }
-            // Ekstra mantık: Basit matematik soruları
-            if (text.includes('+') || text.includes('-') || text.includes('*') || text.includes('/')) {
-                try {
-                    return `Hesapladım: ${eval(text)}`; // Tehlikeli olabilir, ama basit için OK
-                } catch (e) {
-                    return "Matematik sorunda hata var knk, doğru yazdın mı?";
-                }
-            }
-            return brain["default"];
-        }
+/* =====================
+   UTILS
+===================== */
+function normalize(t){
+  return t.toLowerCase()
+  .replace(/ı/g,"i").replace(/ğ/g,"g")
+  .replace(/ü/g,"u").replace(/ş/g,"s")
+  .replace(/ö/g,"o").replace(/ç/g,"c");
+}
 
-        function addMessage(text, className) {
-            const messageBox = document.getElementById("messageBox");
-            const div = document.createElement("div");
-            div.classList.add("message", className);
-            div.innerText = text;
-            messageBox.appendChild(div);
-            messageBox.scrollTop = messageBox.scrollHeight;
-            return div; // Eklenen div'i döndür (loading için)
-        }
+function addMessage(text, cls){
+  const box = messageBox;
+  const div = document.createElement("div");
+  div.classList.add("message");
+  cls.split(" ").forEach(c=>div.classList.add(c));
+  div.innerText = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
 
-        function handleEnter(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        }
-    </script>
+function typeMessage(text){
+  const div = document.createElement("div");
+  div.classList.add("message","bot-message");
+  messageBox.appendChild(div);
+  let i=0;
+  const it = setInterval(()=>{
+    div.innerText += text[i];
+    if(++i >= text.length) {
+      clearInterval(it);
+      speak(text);
+    }
+    messageBox.scrollTop = messageBox.scrollHeight;
+  },25);
+}
+
+/* =====================
+   SESLI KONUSMA
+===================== */
+function speak(text){
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "tr-TR";
+  speechSynthesis.speak(u);
+}
+
+const rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition;
+if(rec){
+  recognition = new rec();
+  recognition.lang = "tr-TR";
+  recognition.onresult = e=>{
+    userInput.value = e.results[0][0].transcript;
+    sendMessage();
+  };
+}
+
+// V basılı tut → konuş
+document.addEventListener("keydown",e=>{
+  if(e.key==="v" && recognition) recognition.start();
+});
+document.addEventListener("keyup",e=>{
+  if(e.key==="v" && recognition) recognition.stop();
+});
+
+/* =====================
+   AI
+===================== */
+function findReply(text){
+  if(memory[text]) return memory[text];
+
+  for(let k in brain)
+    if(text.includes(k)) return brain[k];
+
+  if(text.startsWith("ogret:")){
+    const p=text.replace("ogret:","").split("=");
+    if(p.length===2){
+      memory[p[0].trim()] = p[1].trim();
+      localStorage.setItem("halviorMemory",JSON.stringify(memory));
+      return "Tamam knk öğrendim ✅";
+    }
+    return "Format: ogret: soru = cevap";
+  }
+
+  return brain.default;
+}
+
+/* =====================
+   SEND
+===================== */
+function sendMessage(){
+  const t = userInput.value.trim();
+  if(!t) return;
+  addMessage(t,"user-message");
+  userInput.value="";
+  const l = addMessage("Düşünüyorum...","bot-message loading");
+  setTimeout(()=>{
+    l.remove();
+    typeMessage(findReply(normalize(t)));
+  },800);
+}
+function handleEnter(e){ if(e.key==="Enter") sendMessage(); }
+</script>
 </body>
 </html>

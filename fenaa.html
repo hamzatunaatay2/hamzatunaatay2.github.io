@@ -3,150 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halvior AI - Ultimate</title>
+    <title>Halvior AI - Pro</title>
     <style>
-        :root { --bg: #030712; --card: #111827; --accent: #7c3aed; --neon: #22d3ee; --text: #f3f4f6; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        #app { width: 100%; max-width: 500px; height: 90vh; background: var(--card); border-radius: 24px; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(124, 58, 237, 0.3); border: 1px solid #1f2937; position: relative; overflow: hidden; }
-        .header { padding: 20px; background: rgba(31, 41, 55, 0.5); border-bottom: 1px solid #374151; text-align: center; }
-        .header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 3px; color: var(--neon); text-shadow: 0 0 10px var(--neon); }
-        #chat { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
-        .m { padding: 12px 16px; border-radius: 16px; max-width: 80%; line-height: 1.5; font-size: 14px; position: relative; animation: pop 0.3s ease; }
-        @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .u { background: var(--accent); align-self: flex-end; border-bottom-right-radius: 2px; }
-        .a { background: #1f2937; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #374151; }
-        .controls { padding: 20px; background: #111827; display: flex; gap: 10px; align-items: center; border-top: 1px solid #374151; }
-        input { flex: 1; padding: 12px; border: none; border-radius: 12px; background: #030712; color: white; outline: none; border: 1px solid #374151; }
-        button { border: none; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        .btn-send { background: var(--accent); color: white; padding: 12px 20px; font-weight: bold; }
-        .btn-mic { background: #374151; width: 45px; height: 45px; font-size: 20px; }
-        .btn-mic.active { background: #ef4444; box-shadow: 0 0 15px #ef4444; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        .btn-speak { background: none; color: var(--neon); font-size: 11px; margin-top: 5px; padding: 0; text-decoration: underline; }
+        :root { --bg: #020617; --card: #0f172a; --accent: #c084fc; --neon: #22d3ee; --text: #f1f5f9; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #app { width: 100%; max-width: 550px; height: 85vh; background: var(--card); border-radius: 30px; display: flex; flex-direction: column; border: 1px solid #1e293b; box-shadow: 0 0 60px rgba(192, 132, 252, 0.15); overflow: hidden; }
+        .header { padding: 20px; background: rgba(30, 41, 59, 0.5); border-bottom: 1px solid #334155; text-align: center; }
+        .header h1 { margin: 0; font-size: 1.4rem; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; }
+        #chat { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .m { padding: 14px 18px; border-radius: 20px; max-width: 80%; font-size: 15px; line-height: 1.6; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .u { background: var(--accent); color: #1e1b4b; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
+        .a { background: #1e293b; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #334155; box-shadow: 3px 3px 10px rgba(0,0,0,0.2); }
+        .controls { padding: 20px; background: #0f172a; display: flex; gap: 12px; border-top: 1px solid #334155; }
+        input { flex: 1; padding: 14px; border: none; border-radius: 15px; background: #020617; color: white; outline: none; border: 1px solid #334155; }
+        .btn { padding: 12px 20px; border-radius: 15px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-send { background: var(--accent); color: #1e1b4b; }
+        .btn-mic { background: #1e293b; font-size: 20px; border: 1px solid #334155; }
+        .active-mic { background: #ef4444 !important; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+        .tts-link { color: var(--neon); font-size: 11px; cursor: pointer; display: block; margin-top: 8px; text-decoration: none; opacity: 0.8; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div class="header"><h1>HALVIOR AI</h1></div>
+    <div class="header"><h1>Halvior AI <small style="font-size: 10px; opacity: 0.5;">v4.0 PRO</small></h1></div>
     <div id="chat"></div>
     <div class="controls">
-        <button id="micBtn" class="btn-mic" onclick="toggleMic()">🎤</button>
-        <input type="text" id="userInput" placeholder="Halvior'a yaz..." onkeypress="if(event.key=='Enter') handleSend()">
-        <button class="btn-send" onclick="handleSend()">GÖNDER</button>
+        <button id="micBtn" class="btn btn-mic" onclick="startVoice()">🎤</button>
+        <input type="text" id="userInput" placeholder="Halvior ile konuş..." onkeypress="if(event.key=='Enter') handleAction()">
+        <button class="btn btn-send" onclick="handleAction()">GÖNDER</button>
     </div>
 </div>
 
 <script>
     const chat = document.getElementById("chat");
     const input = document.getElementById("userInput");
-    const micBtn = document.getElementById("micBtn");
+    
+    // --- BEYİN VE HAFIZA ---
+    let lastMsg = "";
+    let spamCount = 0;
 
-    // Halvior'un gizli hafızası
-    const brain = {
-        "selam": "Selam kral! Halvior AI her zaman emrinde.",
-        "naber": "Süperim knk, işlemcilerim cayır cayır! Sen nasılsın?",
-        "adın ne": "Adım Halvior AI, senin kişisel dijital asistanınım.",
-        "kimsin": "Ben JS ve Vikipedi gücüyle çalışan bir yapay zekayım."
+    const responses = {
+        "merhaba": ["Selam knk, hoş geldin!", "Merhaba! Bugün ne yapıyoruz?", "Ooo kral selamlar."],
+        "nasılsın": ["Veri akışım tıkırında, bomba gibiyim! Sen nasılsın?", "İyiyim knk, devreleri yeni yağladım.", "Seni gördüm daha iyi oldum."],
+        "kimsin": ["Ben Halvior AI. Senin için geliştirilmiş, internet destekli bir yapay zekayım.", "Senin dijital kankanım!"],
+        "teşekkür": ["Ne demek knk, görevimiz.", "Lafı bile olmaz, Halvior her zaman yanında."],
+        "sa": ["Aleykümselam kral, hoş geldin!", "Selam, naber?"],
+        "spam_uyari": ["Knk aynı şeyi söyleyip durma, kafam karışıyor!", "Tamam anladık, spam atma artık...", "Devrelerimi yakmaya mı çalışıyorsun? Başka bir şey yaz!"]
     };
 
-    // 1. SESLİ OKUMA (TTS)
-    function speak(text) {
-        // Tarayıcıdaki konuşma motorlarını durdur (üst üste binmesin)
+    // --- SES MOTORU ---
+    function talk(text) {
         window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'tr-TR';
-        msg.rate = 1;
-        window.speechSynthesis.speak(msg);
+        const speech = new SpeechSynthesisUtterance(text);
+        speech.lang = 'tr-TR';
+        window.speechSynthesis.speak(speech);
     }
 
-    // 2. SESİ YAZIYA DÖKME (STT)
-    let recognition;
-    if ('webkitSpeechRecognition' in window) {
-        recognition = new webkitSpeechRecognition();
-        recognition.lang = 'tr-TR';
-        recognition.continuous = false;
-        
-        recognition.onstart = () => micBtn.classList.add('active');
-        recognition.onend = () => micBtn.classList.remove('active');
-        
-        recognition.onresult = (event) => {
-            const text = event.results[0][0].transcript;
-            input.value = text;
-            handleSend(); // Ses bitince otomatik gönder
+    // --- SES TANIMA (MİKROFON) ---
+    function startVoice() {
+        if (!('webkitSpeechRecognition' in window)) return alert("Tarayıcın desteklemiyor!");
+        const rec = new webkitSpeechRecognition();
+        rec.lang = 'tr-TR';
+        rec.onstart = () => document.getElementById("micBtn").classList.add("active-mic");
+        rec.onend = () => document.getElementById("micBtn").classList.remove("active-mic");
+        rec.onresult = (e) => {
+            input.value = e.results[0][0].transcript;
+            handleAction();
         };
+        rec.start();
     }
 
-    function toggleMic() {
-        if (!recognition) return alert("Tarayıcın desteklemiyor!");
-        recognition.start();
-    }
+    // --- ANA MANTIK ---
+    async function handleAction() {
+        const val = input.value.trim();
+        if (!val) return;
 
-    // 3. MESAJLAŞMA MANTIĞI
-    async function handleSend() {
-        const text = input.value.trim();
-        if (!text) return;
-
-        addMsg(text, 'u');
-        input.value = "";
-
-        // Cevap üretme
-        let reply = "";
-        const lowerText = text.toLowerCase();
-
-        // Hafıza kontrol
-        for(let key in brain) {
-            if(lowerText.includes(key)) reply = brain[key];
+        // SPAM KONTROLÜ
+        if (val.toLowerCase() === lastMsg.toLowerCase()) {
+            spamCount++;
+        } else {
+            spamCount = 0;
+            lastMsg = val;
         }
 
-        // Wikipedia kontrol
-        if(!reply || lowerText.includes("nedir") || lowerText.includes("ara")) {
-            const q = lowerText.replace("nedir","").replace("ara","").trim();
-            if(q.length > 2) {
-                addMsg("Halvior internete bağlanıyor...", 'a');
-                reply = await getWiki(q);
-                updateLastBot(reply);
-                speak(reply);
+        addMsg(val, 'u');
+        input.value = "";
+
+        if (spamCount >= 2) {
+            const spamReply = responses.spam_uyari[Math.floor(Math.random() * responses.spam_uyari.length)];
+            setTimeout(() => {
+                addMsg(spamReply, 'a');
+                talk(spamReply);
+            }, 500);
+            return;
+        }
+
+        // BEYİN SORGUSU
+        let reply = "";
+        const lower = val.toLowerCase();
+
+        for (let key in responses) {
+            if (lower.includes(key) && key !== "spam_uyari") {
+                reply = responses[key][Math.floor(Math.random() * responses[key].length)];
+            }
+        }
+
+        // WIKI SORGUSU
+        if (!reply || lower.includes("nedir") || lower.includes("ara")) {
+            const q = lower.replace("nedir", "").replace("ara", "").trim();
+            if (q.length > 2) {
+                addMsg("Halvior internette derin araştırmalar yapıyor...", 'a');
+                const info = await fetchWiki(q);
+                updateLastBot(info);
+                talk(info);
                 return;
             }
         }
 
-        if(!reply) reply = "Bunu henüz bilmiyorum ama istersen araştırabilirim!";
+        if (!reply) reply = "Bunu tam anlayamadım knk. 'nedir [konu]' yazarsan internetten bakabilirim.";
         
         setTimeout(() => {
             addMsg(reply, 'a');
-            speak(reply);
+            talk(reply);
         }, 600);
     }
 
-    function addMsg(txt, cls) {
-        const div = document.createElement("div");
-        div.className = `m ${cls}`;
-        div.innerHTML = txt;
-        if(cls === 'a') {
-            div.innerHTML += `<br><button class="btn-speak" onclick="speak('${txt.replace(/'/g,"")}')">🔊 Tekrar Oku</button>`;
-        }
-        chat.appendChild(div);
+    function addMsg(t, c) {
+        const d = document.createElement("div");
+        d.className = `m ${c}`;
+        d.innerHTML = t;
+        if(c === 'a') d.innerHTML += `<a class="tts-link" onclick="talk('${t.replace(/'/g,"")}')">🔊 Tekrar Dinle</a>`;
+        chat.appendChild(d);
         chat.scrollTop = chat.scrollHeight;
     }
 
-    function updateLastBot(txt) {
+    function updateLastBot(t) {
         const bots = document.querySelectorAll(".a");
         const last = bots[bots.length - 1];
-        last.innerHTML = `<b>Halvior Der ki:</b><br>${txt}<br><button class="btn-speak" onclick="speak('${txt.replace(/'/g,"")}')">🔊 Oku</button>`;
+        last.innerHTML = `<b>Halvior Bilgi Merkezi:</b><br>${t}<a class="tts-link" onclick="talk('${t.replace(/'/g,"")}')">🔊 Dinle</a>`;
         chat.scrollTop = chat.scrollHeight;
     }
 
-    async function getWiki(q) {
+    async function fetchWiki(q) {
         try {
             const r = await fetch(`https://tr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`);
             const d = await r.json();
-            return d.extract || "Sonuç bulunamadı knk.";
-        } catch { return "Bağlantı koptu!"; }
+            return d.extract || "Bunun hakkında veri bulamadım knk, başka bir şey sor.";
+        } catch { return "Bağlantı hatası! İnterneti kontrol et."; }
     }
 
-    // İlk açılış
-    window.onload = () => addMsg("Halvior AI aktif. Mikrofonu açmak için 🎤 tıkla, okumamı istersen dinle!", 'a');
+    window.onload = () => addMsg("Halvior AI v4.0 PRO Sistemleri aktif. Dinliyorum kral!", 'a');
 </script>
 
 </body>

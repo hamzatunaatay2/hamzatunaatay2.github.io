@@ -2,236 +2,168 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<title>Halvior AI Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Halvior AI</title>
-
-<!-- PWA -->
-<link rel="manifest" id="manifest">
 
 <style>
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #0f172a;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
+body{
+  background:#0f172a;
+  font-family:Segoe UI;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  color:white;
 }
-.chat-container {
-    width: 500px;
-    height: 700px;
-    background-color: #1e293b;
-    border-radius: 25px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border: 1px solid #334155;
+.chat-container{
+  width:500px;
+  height:700px;
+  background:#1e293b;
+  border-radius:25px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
 }
-.header {
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-    padding: 20px;
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.4rem;
+.header{
+  background:linear-gradient(90deg,#3b82f6,#8b5cf6);
+  padding:20px;
+  text-align:center;
+  font-weight:bold;
 }
-.messages-area {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+.messages-area{
+  flex:1;
+  padding:20px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
-.message {
-    max-width: 85%;
-    padding: 12px 16px;
-    border-radius: 18px;
-    font-size: 0.95rem;
+.message{
+  padding:12px 16px;
+  border-radius:18px;
+  max-width:85%;
 }
-.bot-message { background:#334155; align-self:flex-start; }
-.user-message { background:#3b82f6; align-self:flex-end; }
-.loading { color:#94a3b8; font-style:italic; }
-.input-area {
-    padding: 20px;
-    background-color: #0f172a;
-    display: flex;
-    gap: 10px;
+.bot-message{background:#334155;align-self:flex-start;}
+.user-message{background:#3b82f6;align-self:flex-end;}
+.loading{font-style:italic;color:#94a3b8;}
+.input-area{
+  padding:20px;
+  display:flex;
+  gap:10px;
+  background:#0f172a;
 }
-input {
-    flex: 1;
-    padding: 12px 20px;
-    border-radius: 30px;
-    border: 1px solid #334155;
-    background-color: #1e293b;
-    color: white;
-    outline: none;
+input{
+  flex:1;
+  padding:12px 20px;
+  border-radius:30px;
+  border:none;
+  outline:none;
 }
-button {
-    background: #3b82f6;
-    border: none;
-    color: white;
-    padding: 10px 25px;
-    border-radius: 30px;
-    cursor: pointer;
+button{
+  background:#3b82f6;
+  border:none;
+  color:white;
+  padding:10px 25px;
+  border-radius:30px;
+  cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 <div class="chat-container">
-    <div class="header">✨ HALVIOR AI</div>
-    <div class="messages-area" id="messageBox">
-        <div class="message bot-message">Selam knk! Ben Halvior 😎</div>
-    </div>
-    <div class="input-area">
-        <input id="userInput" placeholder="Bir şey yaz..." onkeypress="handleEnter(event)">
-        <button onclick="sendMessage()">Gönder</button>
-    </div>
+  <div class="header">🎮 HALVIOR AI GAME</div>
+  <div class="messages-area" id="box">
+    <div class="message bot-message">Selam knk 😎 Oyuna hoş geldin</div>
+  </div>
+  <div class="input-area">
+    <input id="input" placeholder="Mesaj yaz..." onkeypress="if(event.key==='Enter')send()">
+    <button onclick="send()">Gönder</button>
+  </div>
 </div>
 
 <script>
-/* =====================
-   PWA MANIFEST
-===================== */
-const manifest = {
-  name: "Halvior AI",
-  short_name: "Halvior",
-  start_url: ".",
-  display: "standalone",
-  background_color: "#0f172a",
-  theme_color: "#3b82f6"
+// ===== PLAYER DATA =====
+let player = JSON.parse(localStorage.getItem("halviorPlayer")) || {
+  xp:0, level:1, messages:0, taught:0
 };
-const blob = new Blob([JSON.stringify(manifest)], {type:"application/json"});
-document.getElementById("manifest").href = URL.createObjectURL(blob);
-
-/* =====================
-   SETTINGS
-===================== */
-const USE_CHATGPT = false; // true yaparsan API kullanır
-const OPENAI_KEY = "BURAYA_KEY"; // opsiyonel
-
-/* =====================
-   HAFIZA
-===================== */
 let memory = JSON.parse(localStorage.getItem("halviorMemory")) || {};
 
-/* =====================
-   BEYIN
-===================== */
+// ===== BRAIN =====
 const brain = {
   "merhaba":"Selam knk!",
-  "selam":"Selam 😄",
-  "nasilsin":"Bomba gibiyim, sen?",
-  "iyiyim":"Süper 🔥",
-  "kotuyum":"Üzdü knk… anlat istersen",
-  "espri":"Programcı neden aynaya bakmaz? Bug görür 😂",
-  "default":"Bunu bilmiyorum ama öğretebilirsin 👀"
+  "nasilsin":"İyiyim kral, sen?",
+  "oyun":"Şu an benimle oyun oynuyorsun 😎",
+  "level":"Levelin: {level} | XP: {xp}",
+  "default":"Devam et knk, öğreniyorum 👀"
 };
 
-/* =====================
-   UTILS
-===================== */
-function normalize(t){
+// ===== UTILS =====
+function norm(t){
   return t.toLowerCase()
   .replace(/ı/g,"i").replace(/ğ/g,"g")
   .replace(/ü/g,"u").replace(/ş/g,"s")
   .replace(/ö/g,"o").replace(/ç/g,"c");
 }
 
-function addMessage(text, cls){
-  const box = messageBox;
-  const div = document.createElement("div");
-  div.classList.add("message");
-  cls.split(" ").forEach(c=>div.classList.add(c));
-  div.innerText = text;
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
-  return div;
+function add(text,cls){
+  const d=document.createElement("div");
+  d.classList.add("message",cls);
+  d.innerText=text;
+  box.appendChild(d);
+  box.scrollTop=box.scrollHeight;
 }
 
-function typeMessage(text){
-  const div = document.createElement("div");
-  div.classList.add("message","bot-message");
-  messageBox.appendChild(div);
-  let i=0;
-  const it = setInterval(()=>{
-    div.innerText += text[i];
-    if(++i >= text.length) {
-      clearInterval(it);
-      speak(text);
-    }
-    messageBox.scrollTop = messageBox.scrollHeight;
-  },25);
+function gainXP(x){
+  player.xp+=x;
+  player.level=Math.floor(player.xp/100)+1;
+  localStorage.setItem("halviorPlayer",JSON.stringify(player));
 }
 
-/* =====================
-   SESLI KONUSMA
-===================== */
-function speak(text){
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "tr-TR";
-  speechSynthesis.speak(u);
-}
-
-const rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognition;
-if(rec){
-  recognition = new rec();
-  recognition.lang = "tr-TR";
-  recognition.onresult = e=>{
-    userInput.value = e.results[0][0].transcript;
-    sendMessage();
-  };
-}
-
-// V basılı tut → konuş
-document.addEventListener("keydown",e=>{
-  if(e.key==="v" && recognition) recognition.start();
-});
-document.addEventListener("keyup",e=>{
-  if(e.key==="v" && recognition) recognition.stop();
-});
-
-/* =====================
-   AI
-===================== */
-function findReply(text){
+// ===== AI =====
+function reply(text){
   if(memory[text]) return memory[text];
 
-  for(let k in brain)
-    if(text.includes(k)) return brain[k];
-
-  if(text.startsWith("ogret:")){
-    const p=text.replace("ogret:","").split("=");
-    if(p.length===2){
-      memory[p[0].trim()] = p[1].trim();
-      localStorage.setItem("halviorMemory",JSON.stringify(memory));
-      return "Tamam knk öğrendim ✅";
+  for(let k in brain){
+    if(text.includes(k)){
+      return brain[k]
+        .replace("{level}",player.level)
+        .replace("{xp}",player.xp);
     }
-    return "Format: ogret: soru = cevap";
   }
 
-  return brain.default;
+  if(text.startsWith("ogret:")){
+    let p=text.replace("ogret:","").split("=");
+    if(p.length===2){
+      memory[p[0].trim()] = p[1].trim();
+      player.taught++;
+      gainXP(25);
+      localStorage.setItem("halviorMemory",JSON.stringify(memory));
+      return "Öğrendim knk 🧠 +25XP";
+    }
+  }
+
+  return brain.default + (player.level>3 ? " 🔥" : "");
 }
 
-/* =====================
-   SEND
-===================== */
-function sendMessage(){
-  const t = userInput.value.trim();
+// ===== SEND =====
+function send(){
+  const t=input.value.trim();
   if(!t) return;
-  addMessage(t,"user-message");
-  userInput.value="";
-  const l = addMessage("Düşünüyorum...","bot-message loading");
+  add(t,"user-message");
+  input.value="";
+  gainXP(10);
+  player.messages++;
+  const l=document.createElement("div");
+  l.classList.add("message","bot-message","loading");
+  l.innerText="Düşünüyorum...";
+  box.appendChild(l);
+
   setTimeout(()=>{
     l.remove();
-    typeMessage(findReply(normalize(t)));
-  },800);
+    add(reply(norm(t)),"bot-message");
+  },700);
 }
-function handleEnter(e){ if(e.key==="Enter") sendMessage(); }
 </script>
 </body>
 </html>

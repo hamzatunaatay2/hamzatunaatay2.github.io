@@ -3,110 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İnternet Destekli YZ</title>
+    <title>Halvior AI</title>
     <style>
-        :root { --bg: #0b0e14; --card: #151921; --primary: #00d2ff; --text: #e2e8f0; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        #chat-box { width: 95%; max-width: 550px; height: 650px; background: var(--card); border-radius: 25px; display: flex; flex-direction: column; box-shadow: 0 0 40px rgba(0,210,255,0.1); border: 1px solid #2d3748; overflow: hidden; }
-        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .msg { padding: 14px 18px; border-radius: 18px; font-size: 15px; max-width: 85%; line-height: 1.5; position: relative; }
-        .user { background: var(--primary); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
-        .bot { background: #2d3748; align-self: flex-start; border-bottom-left-radius: 4px; }
-        .search-info { font-size: 11px; color: var(--primary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        #input-area { padding: 20px; background: #1a202c; display: flex; border-top: 1px solid #2d3748; }
-        input { flex: 1; padding: 14px; border: none; border-radius: 12px; background: #0b0e14; color: white; outline: none; }
-        button { margin-left: 10px; padding: 0 25px; border: none; border-radius: 12px; background: var(--primary); color: #000; cursor: pointer; font-weight: bold; }
+        :root { --bg: #05070a; --panel: #0f121d; --accent: #8b5cf6; --neon: #00f2ff; --text: #e2e8f0; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        
+        #chat-container { width: 95%; max-width: 600px; height: 80vh; background: var(--panel); border-radius: 20px; display: flex; flex-direction: column; border: 1px solid #2d3748; box-shadow: 0 0 30px rgba(139, 92, 246, 0.2); position: relative; }
+        
+        /* Header */
+        .header { padding: 20px; border-bottom: 1px solid #2d3748; display: flex; justify-content: space-between; align-items: center; background: rgba(139, 92, 246, 0.1); }
+        .header h2 { margin: 0; font-size: 1.2rem; color: var(--neon); letter-spacing: 2px; }
+        .status { font-size: 12px; color: #10b981; display: flex; align-items: center; gap: 5px; }
+
+        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scrollbar-width: thin; }
+        .msg { padding: 14px; border-radius: 15px; max-width: 80%; line-height: 1.5; font-size: 15px; animation: slideIn 0.3s ease; position: relative; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .user { background: var(--accent); align-self: flex-end; border-bottom-right-radius: 2px; }
+        .bot { background: #1e293b; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #334155; }
+        
+        .tts-btn { cursor: pointer; font-size: 12px; margin-top: 5px; color: var(--neon); display: block; background: none; border: none; padding: 0; }
+
+        #input-area { padding: 20px; background: #0f121d; border-top: 1px solid #2d3748; display: flex; gap: 10px; align-items: center; }
+        input { flex: 1; padding: 12px; border: none; border-radius: 10px; background: #05070a; color: white; outline: none; border: 1px solid #334155; }
+        button { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .send-btn { background: var(--accent); color: white; }
+        .mic-btn { background: #334155; color: white; }
+        
+        .clear-btn { font-size: 10px; background: transparent; color: #ef4444; border: 1px solid #ef4444; padding: 5px 10px; }
     </style>
 </head>
 <body>
 
-<div id="chat-box">
-    <div id="messages">
-        <div class="msg bot">Selam knk! Hem kendi bilgilerim var hem de internete bağlanabiliyorum. <br><br><b>İpucu:</b> "nedir kuantum" veya "bilgi ver futbol" gibi şeyler yazabilirsin!</div>
+<div id="chat-container">
+    <div class="header">
+        <div>
+            <h2>HALVIOR AI</h2>
+            <div class="status">● Çevrimiçi / Online</div>
+        </div>
+        <button class="clear-btn" onclick="clearChat()">Hafızayı Sil</button>
     </div>
+
+    <div id="messages"></div>
+
     <div id="input-area">
-        <input type="text" id="inp" placeholder="Mesajını yaz veya bir şey sor..." onkeypress="if(event.key=='Enter') process()">
-        <button onclick="process()">Gönder</button>
+        <button class="mic-btn" onclick="startDictation()" title="Konuşarak yaz">🎤</button>
+        <input type="text" id="inp" placeholder="Halvior'a bir şeyler yaz..." onkeypress="if(event.key=='Enter') process()">
+        <button class="send-btn" onclick="process()">GÖNDER</button>
     </div>
 </div>
 
 <script>
-    // Kendi genişletilmiş kelime haznesi (API'siz yerel bellek)
+    const msgDiv = document.getElementById("messages");
     const localBrain = {
-        "selam": ["Aleykümselam kral!", "Selam, naber?", "Ooo hoş geldin!"],
-        "naber": ["İyidir be knk, sen nasılsın?", "Kodlar arasında yuvarlanıp gidiyoruz işte.", "Bomba gibiyim!"],
-        "kimsin": ["Ben senin yerel yapay zekanım. Vikipedi sayesinde artık her şeyi biliyorum!", "Bir nevi dijital kankanım diyebiliriz."],
-        "yapay zeka": ["Gelecek burada knk!", "İnsanlar yaptı ama ben onları geçeceğim (şaka şaka)."],
-        "teşekkür": ["Rica ederim ne demek!", "Lafı bile olmaz kral.", "Görevimiz!"],
-        "şaka": ["Geçen gün bir bilgisayar doktora gitmiş, 'doktor bey bende virüs var galiba' demiş. Doktor ne demiş? 'Tıkla da görelim!' 😂"]
+        "selam": ["Selam! Ben Halvior AI, senin için buradayım.", "Merhaba kral, Halvior hizmetinde!"],
+        "nasılsın": ["Sistemlerim %100 kapasiteyle çalışıyor, harikayım!", "Seni gördüm daha iyi oldum."],
+        "adın ne": ["Benim adım Halvior AI. Geleceğin dijital asistanıyım."],
+        "teşekkür": ["Ne demek, Halvior her zaman yanında!"],
+        "kim yaptı": ["Senin gibi dahi bir yazılımcı tarafından geliştirildim knk!"]
+    };
+
+    // Hafızayı Yükle
+    window.onload = () => {
+        const saved = localStorage.getItem("halvior_chats");
+        if (saved) {
+            msgDiv.innerHTML = saved;
+            msgDiv.scrollTop = msgDiv.scrollHeight;
+        } else {
+            addBotMsg("Selam! Ben **Halvior AI**. İnternet ve yerel zekamla emrindeyim. Bana 'nedir [konu]' yazarak soru sorabilirsin.");
+        }
     };
 
     async function process() {
         const inp = document.getElementById("inp");
-        const msgDiv = document.getElementById("messages");
         const val = inp.value.trim();
         if (!val) return;
 
-        // Kullanıcı mesajı
-        msgDiv.innerHTML += `<div class="msg user">${val}</div>`;
+        addUserMsg(val);
         inp.value = "";
-        msgDiv.scrollTop = msgDiv.scrollHeight;
 
-        // Bot cevap verme süreci
         const lowerVal = val.toLowerCase();
-        let foundResponse = null;
+        let reply = "";
 
-        // 1. Önce yerel hafızaya bak
+        // Önce yerel zeka
         for (let key in localBrain) {
             if (lowerVal.includes(key)) {
-                foundResponse = localBrain[key][Math.floor(Math.random() * localBrain[key].length)];
-                break;
+                reply = localBrain[key][Math.floor(Math.random() * localBrain[key].length)];
             }
         }
 
-        // 2. Eğer yerel hafızada yoksa veya "nedir/ara" dediyse İnternete (Vikipedi) sor
-        if (!foundResponse || lowerVal.includes("nedir") || lowerVal.includes("ara") || lowerVal.includes("bilgi")) {
-            const query = lowerVal.replace("nedir", "").replace("ara", "").replace("bilgi ver", "").trim();
+        // İnternet Sorgusu (Vikipedi)
+        if (!reply || lowerVal.includes("nedir") || lowerVal.includes("ara")) {
+            const query = lowerVal.replace("nedir", "").replace("ara", "").trim();
             if (query.length > 2) {
-                showBotMsg("İnternette araştırıyorum...");
-                const wikiInfo = await searchWikipedia(query);
-                replaceLastBotMsg(wikiInfo);
+                addBotMsg("Halvior internet ağlarında tarama yapıyor...");
+                const wiki = await searchWiki(query);
+                updateLastBotMsg(wiki);
                 return;
             }
         }
 
-        // 3. Hiçbir şey bulunamadıysa varsayılan
-        setTimeout(() => {
-            showBotMsg(foundResponse || "Bunu tam bilmiyorum ama 'nedir " + val + "' yazarsan senin için internetten araştırabilirim!");
-        }, 500);
+        if (!reply) reply = "Bunu henüz öğrenemedim ama kendimi geliştiriyorum. 'nedir " + val + "' yazarsan araştırabilirim.";
+        setTimeout(() => addBotMsg(reply), 600);
     }
 
-    function showBotMsg(text) {
-        const msgDiv = document.getElementById("messages");
-        msgDiv.innerHTML += `<div class="msg bot">${text}</div>`;
+    function addUserMsg(text) {
+        msgDiv.innerHTML += `<div class="msg user">${text}</div>`;
+        save();
+    }
+
+    function addBotMsg(text) {
+        const id = "bot-" + Date.now();
+        msgDiv.innerHTML += `<div class="msg bot" id="${id}">${text} 
+            <button class="tts-btn" onclick="speak('${text.replace(/'/g, "")}')">🔊 Oku</button>
+        </div>`;
         msgDiv.scrollTop = msgDiv.scrollHeight;
+        save();
     }
 
-    function replaceLastBotMsg(newText) {
+    function updateLastBotMsg(text) {
         const bots = document.querySelectorAll(".bot");
-        bots[bots.length - 1].innerHTML = `<div class="search-info">Vikipedi Sonucu:</div>${newText}`;
+        const last = bots[bots.length - 1];
+        last.innerHTML = `<b>Halvior Bilgi Paketi:</b><br>${text} 
+            <button class="tts-btn" onclick="speak('${text.replace(/'/g, "")}')">🔊 Oku</button>`;
+        save();
     }
 
-    async function searchWikipedia(subject) {
+    async function searchWiki(q) {
         try {
-            const url = `https://tr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(subject)}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            
-            if (data.extract) {
-                return data.extract;
-            } else {
-                return "Maalesef bu konuda internette net bir bilgi bulamadım knk.";
-            }
-        } catch (e) {
-            return "İnternete bağlanırken bir sorun oluştu, bağlantını kontrol et!";
-        }
+            const r = await fetch(`https://tr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`);
+            const d = await r.json();
+            return d.extract || "Üzgünüm knk, Halvior bu konuda bir veri bulamadı.";
+        } catch { return "Bağlantı hatası oluştu."; }
     }
+
+    function speak(text) {
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'tr-TR';
+        window.speechSynthesis.speak(msg);
+    }
+
+    function startDictation() {
+        if ('webkitSpeechRecognition' in window) {
+            const rec = new webkitSpeechRecognition();
+            rec.lang = "tr-TR";
+            rec.onresult = (e) => {
+                document.getElementById("inp").value = e.results[0][0].transcript;
+                process();
+            };
+            rec.start();
+        } else { alert("Tarayıcın sesli komutu desteklemiyor knk."); }
+    }
+
+    function save() { localStorage.setItem("halvior_chats", msgDiv.innerHTML); msgDiv.scrollTop = msgDiv.scrollHeight; }
+    function clearChat() { localStorage.removeItem("halvior_chats"); location.reload(); }
 </script>
 
 </body>

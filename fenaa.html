@@ -1,1 +1,166 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halvior AI - Coder Edition</title>
+    <style>
+        :root { --bg: #0a0a0c; --card: #16161a; --accent: #00ff88; --code-bg: #1e1e1e; --text: #ececed; }
+        body { font-family: 'Consolas', 'Monaco', monospace; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #app { width: 100%; max-width: 650px; height: 90vh; background: var(--card); border-radius: 20px; display: flex; flex-direction: column; border: 1px solid #333; box-shadow: 0 0 40px rgba(0, 255, 136, 0.1); overflow: hidden; }
+        .header { padding: 15px; background: #232329; border-bottom: 1px solid #333; text-align: center; }
+        .header h1 { margin: 0; font-size: 1.2rem; color: var(--accent); letter-spacing: 2px; }
+        #chat { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .m { padding: 12px 16px; border-radius: 12px; max-width: 85%; line-height: 1.5; font-size: 14px; position: relative; }
+        .u { background: #2d2d35; align-self: flex-end; border-right: 4px solid var(--accent); }
+        .a { background: #232329; align-self: flex-start; border-left: 4px solid var(--accent); }
+        
+        /* Kod Bloğu Tasarımı */
+        pre { background: var(--code-bg); padding: 15px; border-radius: 8px; overflow-x: auto; border: 1px solid #444; margin-top: 10px; position: relative; }
+        code { color: #50fa7b; font-family: 'Courier New', monospace; }
+        .copy-btn { position: absolute; top: 5px; right: 5px; background: var(--accent); color: #000; border: none; padding: 3px 8px; font-size: 10px; cursor: pointer; border-radius: 4px; font-weight: bold; }
 
+        .controls { padding: 20px; background: #16161a; border-top: 1px solid #333; display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border: 1px solid #333; border-radius: 8px; background: #0a0a0c; color: white; outline: none; }
+        .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-send { background: var(--accent); color: #000; }
+        .btn-mic { background: #333; color: white; font-size: 20px; }
+        .active-mic { background: #ff4444 !important; box-shadow: 0 0 10px #ff4444; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div class="header"><h1>HALVIOR AI <small>v5.0 CODER</small></h1></div>
+    <div id="chat"></div>
+    <div class="controls">
+        <button id="micBtn" class="btn btn-mic" onclick="startMic()">🎤</button>
+        <input type="text" id="userInput" placeholder="Bana kod yazdır..." onkeypress="if(event.key=='Enter') handle()">
+        <button class="btn btn-send" onclick="handle()">GÖNDER</button>
+    </div>
+</div>
+
+<script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("userInput");
+    let lastMsg = "";
+    let spamCount = 0;
+
+    // --- KOD KÜTÜPHANESİ ---
+    const codeLibrary = {
+        "html": "\n<!DOCTYPE html>\n<html>\n<head>\n<title>Sayfa</title>\n</head>\n<body>\n <h1>Merhaba Dünya</h1>\n</body>\n</html>",
+        "buton": "<button style='padding:10px 20px; background:blue; color:white; border-radius:5px;'>Tıkla</button>",
+        "css": "/* Reset ve Modern Stil */\nbody {\n margin: 0;\n padding: 0;\n font-family: sans-serif;\n background: #f0f0f0;\n}",
+        "javascript": "// Konsola yazı yazdırma\nconsole.log('Halvior AI kod yazıyor...');\n\n// Fonksiyon örneği\nfunction selamVer() {\n alert('Merhaba!');\n}",
+        "input": "<input type='text' placeholder='Buraya yaz...' style='padding:10px; border:1px solid #ccc;'>"
+    };
+
+    const textResponses = {
+        "selam": "Selam kod dostu! Bugün ne geliştiriyoruz?",
+        "nasılsın": "Derleyicilerim hazır, kod yazmak için can atıyorum!",
+        "kimsin": "Ben Halvior AI. Artık kod yazabiliyorum knk!"
+    };
+
+    function talk(t) {
+        window.speechSynthesis.cancel();
+        const s = new SpeechSynthesisUtterance(t);
+        s.lang = 'tr-TR';
+        window.speechSynthesis.speak(s);
+    }
+
+    function startMic() {
+        if (!('webkitSpeechRecognition' in window)) return alert("Desteklenmiyor.");
+        const r = new webkitSpeechRecognition();
+        r.lang = 'tr-TR';
+        r.onstart = () => document.getElementById("micBtn").classList.add("active-mic");
+        r.onend = () => document.getElementById("micBtn").classList.remove("active-mic");
+        r.onresult = (e) => { input.value = e.results[0][0].transcript; handle(); };
+        r.start();
+    }
+
+    async function handle() {
+        const val = input.value.trim();
+        if (!val) return;
+
+        // SPAM KONTROL
+        if(val.toLowerCase() === lastMsg.toLowerCase()) spamCount++;
+        else { spamCount = 0; lastMsg = val; }
+
+        addMsg(val, 'u');
+        input.value = "";
+
+        if(spamCount >= 2) {
+            addMsg("Knk dur, kodlar birbirine girecek! Spam yapma.", 'a');
+            return;
+        }
+
+        const lower = val.toLowerCase();
+        let reply = "";
+
+        // KOD YAZMA MANTIĞI
+        if (lower.includes("kod") || lower.includes("yaz") || lower.includes("yap")) {
+            for (let key in codeLibrary) {
+                if (lower.includes(key)) {
+                    const code = codeLibrary[key];
+                    addCodeMsg(`İşte istediğin <b>${key.toUpperCase()}</b> kodu:`, code);
+                    talk("İşte istediğin kod hazır knk.");
+                    return;
+                }
+            }
+        }
+
+        // METİN CEVAPLARI
+        for (let key in textResponses) {
+            if (lower.includes(key)) reply = textResponses[key];
+        }
+
+        // WIKI / İNTERNET
+        if (!reply || lower.includes("nedir")) {
+            const q = lower.replace("nedir", "").replace("ara", "").trim();
+            if(q.length > 2) {
+                addMsg("Halvior internette araştırıyor...", 'a');
+                const info = await fetch(`https://tr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`).then(r => r.json());
+                updateLastBot(info.extract || "Bilgi bulamadım.");
+                talk(info.extract || "Bilgi bulamadım.");
+                return;
+            }
+        }
+
+        if (!reply) reply = "Bunu tam anlayamadım ama istersen kod yazabilirim (HTML, CSS, JS gibi).";
+        setTimeout(() => { addMsg(reply, 'a'); talk(reply); }, 500);
+    }
+
+    function addMsg(t, c) {
+        const d = document.createElement("div");
+        d.className = `m ${c}`;
+        d.innerHTML = t;
+        chat.appendChild(d);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    function addCodeMsg(text, code) {
+        const d = document.createElement("div");
+        d.className = "m a";
+        d.innerHTML = `${text}<pre><button class="copy-btn" onclick="copyCode(this)">KOPYALA</button><code>${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>`;
+        chat.appendChild(d);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    function updateLastBot(t) {
+        const bots = document.querySelectorAll(".a");
+        bots[bots.length - 1].innerHTML = t;
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    function copyCode(btn) {
+        const code = btn.nextElementSibling.innerText;
+        navigator.clipboard.writeText(code);
+        btn.innerText = "KOPYALANDI!";
+        setTimeout(() => btn.innerText = "KOPYALA", 2000);
+    }
+
+    window.onload = () => addMsg("<b>Halvior AI Coder</b> aktif. Bana 'HTML kod yaz' veya 'buton kodu ver' diyebilirsin!", 'a');
+</script>
+
+</body>
+</html>
